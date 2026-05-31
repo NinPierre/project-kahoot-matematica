@@ -2,89 +2,117 @@
 <html lang="pt-BR">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Λ próklesi</title>
 
-    <link rel="stylesheet" href=""> <!-- caminho do css -->
-
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-
-    <!-- links de navegação do menu -->
-    <nav>
+<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
+    <!-- Menu -->
+    <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
 
         <a href="home.html">
-            <h1>logo</h1>
+            <h1 class="text-cyan-200 text-3xl font-bold">
+                Λ próklesi
+            </h1>
         </a> <!-- caminho da home da logo -->
 
-        <a href="home.html">
-            <h2>home</h2>
-        </a> <!-- caminho da home -->
+        <div class="flex gap-8">
 
-        <a href="login.html">
-            <h2>login</h2>
-        </a> <!-- caminho do login -->
+            <a href="home.html" class="hover:text-cyan-200 transition">
+                Home
+            </a>
 
-        <a href="criaçao_salas.html">
-            <h2>criaçao_salas</h2>
-        </a> <!-- caminho da criação das salas -->
+            <a href="login.html" class="hover:text-cyan-200 transition">
+                Login
+            </a>
+
+            <a href="criaçao_salas.html" class="hover:text-cyan-200 transition">
+                Criação de Salas
+            </a>
+
+        </div>
 
     </nav>
 
-    <!-- conteúdo autoexplicativo do site -->
-    <p>
-        Uma competição de matemática online para testar quem é o melhor em matemática
-        complete questões em menor tempo para ganhar mais pontos que os demais competidores
-    </p>
+    <!-- Conteúdo Principal -->
+    <main class="flex justify-center gap-16 mt-16 px-10">
 
-    <p>
-        Os melhores vão ser premiados
-    </p>
+        <!-- Texto -->
+        <div class="w-1/2">
 
-    <!-- pesquisar salas -->
-    <section>
+            <h2 class="text-cyan-200 text-4xl font-bold mb-6">
+                Competição de Matemática Online
+            </h2>
 
-        <div>
+            <p class="text-lg leading-relaxed">
+                Uma competição de matemática online para testar quem é o melhor em matemática.
+                Complete questões no menor tempo possível para ganhar mais pontos que os demais competidores.
+            </p>
 
-            <h2>salas disponiveis</h2>
-
-            <h3>pesquisar salas</h3>
-
-            <input 
-                type="text"
-                placeholder="Digite nome da sala"
-            >
-
-            <button>
-                Pesquisar
-            </button>
-
-            
-
-            <h4>Dificuldade</h4>
-
-            <h4>serie</h4>
-
-            <h4>Núm. máximo de jogador</h4>
+            <p class="text-lg mt-6">
+                Os melhores colocados serão premiados.
+            </p>
 
         </div>
 
-    </section>
-   <aside>
+        <!-- Pesquisa de Salas -->
+        <section class="w-1/2 flex justify-center">
 
-        <div>
+            <div class="bg-blue-900 border-4 border-cyan-200 rounded-xl p-6 shadow-lg w-96">
 
-            <h3>
+                <h2 class="text-cyan-200 text-2xl font-bold mb-4">
+                    Salas Disponíveis
+                </h2>
 
-                <th>Placar geral</th>
-                
+                <h3 class="mb-3">
+                    Pesquisar salas
+                </h3>
+
+                <input
+                    type="text"
+                    placeholder="Digite o nome da sala"
+                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+
+                <button
+                    class="w-full mt-4 bg-cyan-200 text-blue-950 font-bold py-3 rounded-lg hover:bg-cyan-300 transition">
+                    Pesquisar
+                </button>
+
+                <h4 class="mt-6 border-b border-slate-700 pb-2">
+                    Dificuldade
+                </h4>
+
+                <h4 class="mt-3 border-b border-slate-700 pb-2">
+                    Série
+                </h4>
+
+                <h4 class="mt-3 border-b border-slate-700 pb-2">
+                    Núm. máximo de jogadores
+                </h4>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Placar -->
+    <!--
+    <aside class="fixed right-6 top-28">
+
+        <div class="bg-blue-900 border-2 border-cyan-200 rounded-xl p-5 shadow-lg w-64">
+
+            <h3 class="text-cyan-200 text-xl font-bold text-center">
+                Placar Geral
             </h3>
+
         </div>
-   </aside>
+
+    </aside>-->
+
 </body>
 
 </html>

@@ -1,48 +1,61 @@
 <!DOCTYPE html>
-<head>
 <html lang="pt-BR">
-     <meta name="viewport"content="width=device-width, initial-scale=1.0">
-     <title>Λ próklesi</title>   
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Λ próklesi</title>  
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
- <body>
-     <div>
-          <nav>
 
-               <a href="home.html"><h1>logo</h1></a> <!--caminho da home da logo-->
+<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
+    <div>
+        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
+            <a href="home.html">
+                <h1 class="text-cyan-200 text-3xl font-bold">
+                    Λ próklesi
+                </h1>
+            </a> <!--caminho da home da logo-->
 
-               <a href="home.html"><h2>home</h2></a> <!--caminho da home-->
-          </nav>
- 
-     </div>
-
-      <!--caixa de login do professor-->
-
-     
-     <div>
-               <h1>Login</h1> <!--caixa de login-->
-
-               <h2>nome</h2> <!--nome da conta-->
-     
-                    <!--input e butao do nome da pessoa-->
-                    <input 
-                         type="text"
-                         placeholder="Nome da conta"
-               >
-
-               <h2>senha</h2> <!--senha da conta-->
-
-                    <input 
-                         type="password"
-                         placeholder="Senha"
-               >
-
-                         <button>
-                              Enviar
-                         </button>
-      
-       </div>
-
+            <a href="home.html" class="hover:text-cyan-200 transition">
+                <h2>
+                    Home
+                </h2>
+            </a> <!--caminho da home-->
+        </nav>
     </div>
 
+    <!--caixa de login do professor-->
+    <section class="flex justify-center mt-10">
+        <div class="bg-blue-900 border border-cyan-200 rounded-xl p-6 shadow-lg w-96">
+            <h1 class="text-cyan-200 text-2xl font-bold mb-4">
+                Login
+            </h1>
+
+            <h2 class="text-lg mb-3">
+                nome
+            </h2>
+
+            <input
+                type="text"
+                placeholder="Nome da conta"
+                class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+            >
+
+            <h2 class="text-lg mb-3">
+                senha
+            </h2>
+
+            <input
+                type="password"
+                placeholder="Nome da conta"
+                class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+            >
+
+            <button
+                class="mt-4 w-full bg-cyan-200 text-blue-950 font-bold py-2 rounded-lg hover:bg-cyan-300 transition"
+            >
+                Enviar
+            </button>
+        </div>
+    </section>
 </body>
-    
+</html>
