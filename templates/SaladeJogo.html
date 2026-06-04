@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala de Jogo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
+
+    <header>
+        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
+            <a href="{{ url_for('home') }}">
+                <h1 class="text-cyan-200 text-3xl font-bold">Λ próklesi</h1>
+            </a>
+
+            <div class="flex gap-6">
+                <a href="{{ url_for('home') }}" class="hover:text-cyan-200 transition">Home</a>
+                <a href="{{ url_for('login') }}" class="hover:text-cyan-200 transition">Login</a>
+            </div>
+        </nav>
+
+        <h1 class="text-cyan-200 text-2xl font-bold text-center mt-4">Sala de Matemática</h1>
+    </header>
+
+    <main class="max-w-3xl mx-auto mt-8 px-6">
+
+        <!-- Informações da partida -->
+        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 mb-6">
+            <h2 class="text-cyan-200 text-xl font-bold mb-3">Informações da Sala</h2>
+            <p>Nome da sala: Matemática Básica</p>
+            <p>Jogadores: 12 / 20</p>
+            <p>Tempo restante: 02:30</p>
+        </section>
+
+        <hr class="border-slate-700 mb-6">
+
+        <!-- Pergunta -->
+        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 mb-6">
+            <h2 class="text-cyan-200 text-xl font-bold mb-3">Pergunta Atual</h2>
+            <h3 class="text-lg mb-4">Quanto é 15 + 17 ?</h3>
+
+            <form action="#" method="POST" class="flex flex-col gap-3">
+
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="questao" value="28"> 28
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="questao" value="32"> 32
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="questao" value="31"> 31
+                </label>
+
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="questao" value="35"> 35
+                </label>
+
+                <button type="submit"
+                    class="mt-4 bg-cyan-200 text-blue-950 font-bold py-2 rounded-lg hover:bg-cyan-300 transition">
+                    Responder
+                </button>
+
+            </form>
+        </section>
+
+        <hr class="border-slate-700 mb-6">
+
+        <!-- Placar -->
+        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 mb-6">
+            <h2 class="text-cyan-200 text-xl font-bold mb-3">Placar Ao Vivo</h2>
+            <ol class="list-decimal list-inside flex flex-col gap-1">
+                <li>Jogador1 - 150 pts</li>
+                <li>Jogador2 - 130 pts</li>
+                <li>Jogador3 - 110 pts</li>
+                <li>Você - 95 pts</li>
+            </ol>
+        </section>
+
+        <hr class="border-slate-700 mb-6">
+
+        <!-- Controles -->
+        <section class="flex gap-4 mb-10">
+            <button
+                class="bg-cyan-200 text-blue-950 font-bold py-2 px-6 rounded-lg hover:bg-cyan-300 transition">
+                Próxima Questão
+            </button>
+
+            <button
+                onclick="window.location.href='{{ url_for('home') }}'"
+                class="bg-red-400 text-blue-950 font-bold py-2 px-6 rounded-lg hover:bg-red-500 transition">
+                Sair da Sala
+            </button>
+        </section>
+
+    </main>
+
+    <footer class="text-center mb-4 text-slate-600">
+        <p>Sala de Jogo</p>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Λ próklesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
+    <div>
+        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
+            <a href="{{ url_for('home') }}">
+                <h1 class="text-cyan-200 text-3xl font-bold">
+                    Λ próklesi
+                </h1>
+            </a>
+
+            <a href="{{ url_for('home') }}" class="hover:text-cyan-200 transition">
+                <h2>Home</h2>
+            </a>
+        </nav>
+    </div>
+
+    <section class="flex justify-center mt-10">
+        <div class="bg-blue-900 border border-cyan-200 rounded-xl p-6 shadow-lg w-96">
+            <h1 class="text-cyan-200 text-2xl font-bold mb-4">
+                Login
+            </h1>
+
+            {% if error %}
+                <p class="text-red-400 mb-3">{{ error }}</p>
+            {% endif %}
+
+            <form action="{{ url_for('login') }}" method="POST">
+
+                <h2 class="text-lg mb-3">Nome</h2>
+
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="Nome da conta"
+                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                >
+
+                <h2 class="text-lg mb-3 mt-4">Senha</h2>
+
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Senha"
+                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                >
+
+                <button
+                    type="submit"
+                    class="mt-4 w-full bg-cyan-200 text-blue-950 font-bold py-2 rounded-lg hover:bg-cyan-300 transition"
+                >
+                    Entrar
+                </button>
+
+            </form>
+        </div>
+    </section>
+</body>
+</html>
