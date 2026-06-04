@@ -10,48 +10,47 @@
 <body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
 
     <header>
-        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
+        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <a href="{{ url_for('home') }}">
-                <h1 class="text-cyan-200 text-3xl font-bold">Λ próklesi</h1>
+                <h1 class="text-cyan-200 text-2xl md:text-3xl font-bold">Λ próklesi</h1>
             </a>
 
-            <h2 class="text-cyan-200 text-xl font-semibold">Dashboard do Professor</h2>
+            <h2 class="text-cyan-200 text-lg md:text-xl font-semibold text-center">Dashboard do Professor</h2>
 
-            <a href="{{ url_for('logout') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
+            <a href="{{ url_for('logout') }}" class="w-full md:w-auto text-center inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
                 Sair
             </a>
         </nav>
     </header>
 
-    <main class="max-w-3xl mx-auto mt-10 px-6">
+    <main class="max-w-3xl mx-auto mt-6 md:mt-10 px-4 md:px-6">
 
-        <!-- Criar perguntas -->
-        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 mb-6">
+        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-4 md:p-6 mb-6">
 
-            <h2 class="text-cyan-200 text-2xl font-bold mb-4">Adicionar Pergunta</h2>
+            <h2 class="text-cyan-200 text-xl md:text-2xl font-bold mb-4">Adicionar Pergunta</h2>
 
             <form action="#" method="POST" class="flex flex-col gap-3">
 
                 <input type="text" name="pergunta" placeholder="Digite a pergunta"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
 
                 <input type="text" name="alternativa_a" placeholder="Alternativa A"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
 
                 <input type="text" name="alternativa_b" placeholder="Alternativa B"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
 
                 <input type="text" name="alternativa_c" placeholder="Alternativa C"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
 
                 <input type="text" name="alternativa_d" placeholder="Alternativa D"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
 
                 <input type="text" name="resposta_correta" placeholder="Resposta correta (A, B, C ou D)"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
 
                 <button type="submit"
-                    class="bg-cyan-200 text-blue-950 font-bold py-2 rounded-lg hover:bg-cyan-300 transition">
+                    class="bg-cyan-200 text-blue-950 font-bold py-2.5 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base">
                     Salvar Pergunta
                 </button>
 
@@ -61,33 +60,31 @@
 
         <hr class="border-slate-700 mb-6">
 
-        <!-- Perguntas cadastradas -->
-        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 mb-6">
+        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-4 md:p-6 mb-6">
 
-            <h2 class="text-cyan-200 text-2xl font-bold mb-4">Perguntas Criadas</h2>
+            <h2 class="text-cyan-200 text-xl md:text-2xl font-bold mb-4">Perguntas Criadas</h2>
 
             <div>
-                <p>Nenhuma pergunta cadastrada.</p>
+                <p class="text-sm md:text-base">Nenhuma pergunta cadastrada.</p>
             </div>
 
         </section>
 
         <hr class="border-slate-700 mb-6">
 
-        <!-- Gerenciamento -->
-        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 flex gap-4">
+        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-4 md:p-6 flex flex-col sm:flex-row flex-wrap gap-4 items-center">
 
-            <h2 class="text-cyan-200 text-2xl font-bold mb-4 w-full">Gerenciamento</h2>
+            <h2 class="text-cyan-200 text-xl md:text-2xl font-bold sm:w-full text-center sm:text-left">Gerenciamento</h2>
 
-            <button class="bg-cyan-200 text-blue-950 font-bold py-2 px-4 rounded-lg hover:bg-cyan-300 transition">
+            <button class="w-full sm:w-auto flex-1 bg-cyan-200 text-blue-950 font-bold py-2.5 px-4 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base">
                 Editar Perguntas
             </button>
 
-            <button class="bg-red-400 text-blue-950 font-bold py-2 px-4 rounded-lg hover:bg-red-500 transition">
+            <button class="w-full sm:w-auto flex-1 bg-red-400 text-blue-950 font-bold py-2.5 px-4 rounded-lg hover:bg-red-500 transition text-sm md:text-base">
                 Excluir Perguntas
             </button>
 
-            <button class="bg-cyan-200 text-blue-950 font-bold py-2 px-4 rounded-lg hover:bg-cyan-300 transition">
+            <button class="w-full sm:w-auto flex-1 bg-cyan-200 text-blue-950 font-bold py-2.5 px-4 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base">
                 Criar Sala
             </button>
 
@@ -95,7 +92,7 @@
 
     </main>
 
-    <footer class="text-center mt-10 mb-4 text-slate-600">
+    <footer class="text-center mt-10 mb-4 text-slate-600 text-xs md:text-sm">
         <p>Painel do Professor</p>
     </footer>
 

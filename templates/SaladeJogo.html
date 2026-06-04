@@ -8,74 +8,74 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
+<body class="bg-blue-950 text-slate-400 font-sans min-h-screen antialiased">
 
     <header>
-        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
+        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <a href="{{ url_for('home') }}">
-                <h1 class="text-cyan-200 text-3xl font-bold">Λ próklesi</h1>
+                <h1 class="text-cyan-200 text-2xl md:text-3xl font-bold tracking-wide whitespace-nowrap">Λ próklesi</h1>
             </a>
 
-            <div class="flex gap-2">
+            <div class="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
                 <button onclick="window.location.href='{{ url_for('home') }}'"
-                    class="inline-block bg-cyan-200 hover:bg-red-500 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
+                    class="bg-cyan-200 hover:bg-red-500 text-blue-950 font-semibold py-2 px-3 md:px-6 rounded-full transition duration-300 text-center text-xs md:text-sm whitespace-nowrap">
                     Sair da Sala
                 </button>
                 
-                <a href="{{ url_for('login') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
+                <a href="{{ url_for('login') }}" class="bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-3 md:px-6 rounded-full transition duration-300 text-center text-xs md:text-sm">
                     Login
                 </a>
             </div>
         </nav>
 
-        <h1 class="text-cyan-200 text-2xl font-bold text-center mt-4">Sala de Matemática</h1>
+        <h1 class="text-cyan-200 text-xl md:text-2xl font-bold text-center mt-4 px-4">Sala de Matemática</h1>
     </header>
 
-    <main class="max-w-6xl mx-auto mt-8 px-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+    <main class="max-w-6xl mx-auto mt-6 md:mt-8 px-4 md:px-6 grid grid-cols-1 md:grid-cols-4 gap-6">
 
-        <section class="bg-gradient-to-br from-slate-800 via-blue-900 to-cyan-700 rounded-xl p-6 sticky top-4 shadow-xl">
-    <h2 class="text-rose-400 text-xl font-bold mb-3">Placar Ao Vivo</h2>
+        <section class="bg-gradient-to-br from-slate-800 via-blue-900 to-cyan-700 rounded-xl p-6 md:sticky md:top-4 shadow-xl h-fit order-2 md:order-1">
+            <h2 class="text-rose-400 text-xl font-bold mb-3">Placar Ao Vivo</h2>
 
-    <ol class="list-decimal list-inside flex flex-col gap-1 text-red-100 font-mono">
-        <li>Jogador1 - 150 pts</li>
-        <li>Jogador2 - 130 pts</li>
-        <li>Jogador3 - 110 pts</li>
-        <li>Você - 95 pts</li>
-    </ol>
-</section>
+            <ol class="list-decimal list-inside flex flex-col gap-1 text-red-100 font-mono">
+                <li>Jogador1 - 150 pts</li>
+                <li>Jogador2 - 130 pts</li>
+                <li>Jogador3 - 110 pts</li>
+                <li>Você - 95 pts</li>
+            </ol>
+        </section>
 
-        <div class="md:col-span-2 flex flex-col gap-6">
+        <div class="md:col-span-2 flex flex-col gap-6 order-1 md:order-2">
             
-            <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6">
+            <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 shadow-md">
                 <h2 class="text-cyan-200 text-xl font-bold mb-3">Informações da Sala</h2>
                 <p>Nome da sala: Matemática Básica</p>
                 <p>Jogadores: 12 / 20</p>
                 <p>Tempo restante: 02:30</p>
             </section>
 
-            <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6">
+            <section class="bg-blue-900 border border-cyan-200 rounded-xl p-6 shadow-md">
                 <h2 class="text-cyan-200 text-xl font-bold mb-3">Pergunta Atual</h2>
-                <h3 class="text-lg mb-4">Quanto é 15 + 17 ?</h3>
+                <h3 class="text-lg mb-4 text-slate-200">Quanto é 15 + 17 ?</h3>
 
                 <form action="#" method="POST" class="flex flex-col gap-3">
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="questao" value="28"> 28
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="questao" value="28" class="w-4 h-4 accent-cyan-200"> <span>28</span>
                     </label>
 
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="questao" value="32"> 32
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="questao" value="32" class="w-4 h-4 accent-cyan-200"> <span>32</span>
                     </label>
 
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="questao" value="31"> 31
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="questao" value="31" class="w-4 h-4 accent-cyan-200"> <span>31</span>
                     </label>
 
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="questao" value="35"> 35
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="questao" value="35" class="w-4 h-4 accent-cyan-200"> <span>35</span>
                     </label>
 
                     <button type="submit"
-                        class="mt-4 bg-cyan-200 text-blue-950 font-bold py-2 rounded-lg hover:bg-cyan-300 transition">
+                        class="mt-4 bg-cyan-200 text-blue-950 font-bold py-2 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base tracking-wide">
                         Responder
                     </button>
                 </form>
@@ -83,10 +83,9 @@
 
         </div>
 
-        <div class="hidden md:block md:col-span-1"></div>
+        <div class="hidden md:block md:col-span-1 md:order-3"></div>
 
     </main>
 
 </body>
-
 </html>

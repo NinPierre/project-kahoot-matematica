@@ -8,90 +8,103 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
-    <!-- Menu -->
-    <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
-
-        <a href="{{ url_for('home') }}">
-            <h1 class="text-cyan-200 text-3xl font-bold">
-                Λ próklesi
-            </h1>
-        </a>
-
-        <div class="flex gap-2">
-<!--
-            <a href="{{ url_for('home') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
-                Home
+<body class="bg-blue-950 text-slate-400 font-sans min-h-screen antialiased">
+    <!-- Menu Totalmente Responsivo -->
+    <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4">
+        <!-- Container interno para gerenciar o fluxo no PC e no Celular -->
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            
+            <a href="{{ url_for('home') }}" class="block text-center sm:text-left">
+                <h1 class="text-cyan-200 text-2xl md:text-3xl font-bold tracking-wide whitespace-nowrap">
+                    Λ próklesi
+                </h1>
             </a>
-        -->
-            {% if 'user' in session %}
-                <a href="{{ url_for('dashboard') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
-                    Dashboard
-                </a>
-                <a href="{{ url_for('logout') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
-                    Sair
-                </a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
-                    Login
-                </a>
-            {% endif %}
 
-            <a href="{{ url_for('room_create') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
-                Criação de Salas
-            </a>
+            <!-- Bloco de botões: em celulares pequenos eles se ajustam sozinhos verticalmente sem estourar as laterais -->
+            <div class="flex flex-col grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
+                {% if 'user' in session %}
+                    <a href="{{ url_for('dashboard') }}" class="text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-3 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm whitespace-nowrap">
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-3 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm whitespace-nowrap">
+                        Sair
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="col-span-2 text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-4 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm">
+                        Login
+                    </a>
+                {% endif %}
+
+                <!-- O botão maior ganha a linha toda no mobile para não esmagar o texto "Criação de Salas" -->
+                <a href="{{ url_for('room_create') }}" class="col-span-2 text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-4 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm whitespace-nowrap">
+                    Criação de Salas
+                </a>
+            </div>
 
         </div>
-
     </nav>
 
-    <!-- Conteúdo Principal -->
-    <main class="flex justify-center gap-16 mt-16 px-10">
+    <!-- Conteúdo Principal Adaptável -->
+    <!-- Mudança crucial: usamos o sistema de Grid do Tailwind que respeita o espaço real da tela -->
+    <main class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mt-6 md:mt-12 px-4 md:px-8 max-w-6xl mx-auto">
 
-        <!-- Texto -->
-        <div class="w-1/2">
+        <!-- Lado Esquerdo: Texto explicativo -->
+        <div class="w-full text-center lg:text-left flex flex-col justify-center">
 
-            <h2 class="text-cyan-200 text-4xl font-bold mb-6">
+            <h2 class="text-cyan-200 text-2xl md:text-4xl font-bold mb-4">
                 Competição de Matemática Online
             </h2>
 
-            <p class="text-lg leading-relaxed">
+            <p class="text-sm md:text-base lg:text-lg leading-relaxed text-slate-300">
                 Uma competição de matemática online para testar quem é o melhor em matemática.
                 Complete questões no menor tempo possível para ganhar mais pontos que os demais competidores.
             </p>
 
-            <p class="text-lg mt-6">
+            <p class="text-sm md:text-base lg:text-lg mt-4 font-semibold text-cyan-400">
                 Os melhores colocados serão premiados.
             </p>
 
         </div>
 
-        <!-- Pesquisa de Salas -->
-        <section class="w-1/2 flex justify-center">
+        <!-- Lado Direito: Pesquisa de Salas (Card) -->
+        <section class="w-full flex justify-center items-start">
 
-            <div class="bg-blue-900 border-4 border-cyan-200 rounded-xl p-6 shadow-lg w-96">
+            <!-- Substituído qualquer tamanho fixo por max-w-full para garantir que nunca transborde no iPhone -->
+            <div class="bg-blue-900 border-4 border-cyan-200 rounded-xl p-4 md:p-6 shadow-lg w-full max-w-md Box-border">
 
-                <h2 class="text-cyan-200 text-2xl font-bold mb-4">
+                <h2 class="text-cyan-200 text-xl md:text-2xl font-bold mb-3 text-center sm:text-left">
                     Salas Disponíveis
                 </h2>
 
-                <h3 class="mb-3">
+                <h3 class="mb-2 text-xs md:text-sm text-slate-300">
                     Pesquisar salas
                 </h3>
 
                 <input
                     type="text"
                     placeholder="Digite o nome da sala"
-                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm">
 
                 <button
-                    class="w-full mt-4 bg-cyan-200 text-blue-950 font-bold py-3 rounded-lg hover:bg-cyan-300 transition">
+                    class="w-full mt-3 bg-cyan-200 text-blue-950 font-bold py-2.5 rounded-lg hover:bg-cyan-300 transition text-sm tracking-wide">
                     Pesquisar
                 </button>
 
-                <h4 class="mt-6 border-b border-slate-700 pb-2">Dificuldade</h4>
-                <h4 class="mt-3 border-b border-slate-700 pb-2">Série</h4>
-                <h4 class="mt-3 border-b border-slate-700 pb-2">Núm. máximo de jogadores</h4>
+                <!-- Informações extras da sala ajustadas para não quebrar linha de forma feia no mobile -->
+                <div class="text-xs md:text-sm font-medium text-slate-300">
+                    <div class="mt-4 border-b border-slate-700/60 pb-2 flex justify-between gap-2">
+                        <span>Dificuldade</span>
+                        <span class="text-cyan-300/70">—</span>
+                    </div>
+                    <div class="mt-2 border-b border-slate-700/60 pb-2 flex justify-between gap-2">
+                        <span>Série</span>
+                        <span class="text-cyan-300/70">—</span>
+                    </div>
+                    <div class="mt-2 border-b border-slate-700/60 pb-2 flex justify-between gap-2">
+                        <span>Máx. de jogadores</span>
+                        <span class="text-cyan-300/70">—</span>
+                    </div>
+                </div>
 
             </div>
 
@@ -99,6 +112,9 @@
 
     </main>
 
+    <footer class="text-center py-8 text-slate-600 text-xs">
+        <p>© Λ próklesi — Painel de Competição</p>
+    </footer>
 </body>
 
 </html>

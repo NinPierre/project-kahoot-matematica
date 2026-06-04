@@ -7,56 +7,55 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
+<body class="bg-blue-950 text-slate-400 font-sans min-h-screen antialiased">
     <div>
-        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center">
+        <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex justify-between items-center gap-2">
             <a href="{{ url_for('home') }}">
-                <h1 class="text-cyan-200 text-3xl font-bold">
+                <h1 class="text-cyan-200 text-2xl md:text-3xl font-bold tracking-wide whitespace-nowrap">
                     Λ próklesi
                 </h1>
             </a>
 
-            <a href="{{ url_for('home') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
-                <h2>
-                    Voltar
-                </h2>
+            <a href="{{ url_for('home') }}" class="inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-5 md:px-6 rounded-full transition duration-300 text-sm md:text-base">
+                Voltar
             </a>
         </nav>
     </div>
 
-    <section class="flex justify-center mt-10">
-        <div class="bg-blue-900 border border-cyan-200 rounded-xl p-6 shadow-lg w-96">
+    <section class="flex justify-center mt-10 px-4">
+        
+        <div class="bg-blue-900 border border-cyan-200 rounded-xl p-6 shadow-lg w-full max-w-md box-border">
             <h1 class="text-cyan-200 text-2xl font-bold mb-4">
                 Login
             </h1>
 
             {% if error %}
-                <p class="text-red-400 mb-3">{{ error }}</p>
+                <p class="text-red-400 mb-3 text-sm md:text-base">{{ error }}</p>
             {% endif %}
 
             <form action="{{ url_for('login') }}" method="POST">
 
-                <h2 class="text-lg mb-3">Nome</h2>
+                <h2 class="text-base md:text-lg mb-2">Nome</h2>
 
                 <input
                     type="text"
                     name="username"
                     placeholder="Nome da conta"
-                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base"
                 >
 
-                <h2 class="text-lg mb-3 mt-4">Senha</h2>
+                <h2 class="text-base md:text-lg mb-2 mt-4">Senha</h2>
 
                 <input
                     type="password"
                     name="password"
                     placeholder="Senha"
-                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base"
                 >
 
                 <button
                     type="submit"
-                    class="mt-4 w-full bg-cyan-200 text-blue-950 font-bold py-2 rounded-lg hover:bg-cyan-300 transition"
+                    class="mt-6 w-full bg-cyan-200 text-blue-950 font-bold py-3 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base tracking-wide"
                 >
                     Entrar
                 </button>
