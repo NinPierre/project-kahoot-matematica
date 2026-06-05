@@ -7,7 +7,7 @@ app.config['SECRET_KEY'] = 'secret!'
 
 # Simulação simples de login (substituir por banco de dados real)
 USUARIOS = {
-    'professor': '1234'
+    'tito': '123'
 }
 
 def check_login(username, password):
@@ -61,10 +61,8 @@ def dashboard():
 
 
 # Rota de criação de sala
-@app.route('/sala_create', methods=['GET', 'POST'])
+@app.route('/entra_sala_create', methods=['GET', 'POST']) # nao precisa estar logado para criar sala.
 def room_create():
-    if 'user' not in session:
-        return redirect(url_for('login'))
     return render_template('home.html')  # Substituir por room_create.html quando criado
 
 
