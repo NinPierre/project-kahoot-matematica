@@ -4,19 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Λ próklesi</title>
+    <title>Quiztech Matemático</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-blue-950 text-slate-400 font-sans min-h-screen antialiased">
     <!-- Menu Totalmente Responsivo -->
     <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4">
-        <!-- Container interno para gerenciar o fluxo no PC e no Celular -->
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        
+            <a href="{{ url_for('home') }}" class="flex items-center justify-center sm:justify-start gap-3">
+                <div class="flex items-center justify-center">
+                    <img src="../static/imagens/logo.png" alt="Logo" class="h-12 w-auto object-contain">
+                </div>
             
-            <a href="{{ url_for('home') }}" class="block text-center sm:text-left">
                 <h1 class="text-cyan-200 text-2xl md:text-3xl font-bold tracking-wide whitespace-nowrap">
-                    Λ próklesi
+                Quiztech Matemático
                 </h1>
             </a>
 
