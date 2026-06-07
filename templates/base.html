@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Quiztech Matemático{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <style>
+        :root {
+            --cyan-main:   #a5f3fc;
+            --cyan-bright: #67e8f9;
+            --slate-body:  #94a3b8;
+            --slate-light: #cbd5e1;
+            --blue-deep:   #0c1a3a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #050d1f;
+            color: var(--slate-body);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fundo animado */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 40% at 20% 0%, rgba(30,64,175,.4) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 30% at 80% 100%, rgba(6,182,212,.2) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(165,243,252,.06) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #page-wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(14,28,60,.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(165,243,252,.25);
+            box-shadow: 0 1px 24px rgba(0,0,0,.4);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0 1.5rem;
+            height: 68px;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-inner {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+        .nav-logo img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(165,243,252,.4));
+            transition: filter .3s;
+        }
+        .nav-logo:hover img { filter: drop-shadow(0 0 14px rgba(165,243,252,.8)); }
+        .nav-logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--cyan-main);
+            white-space: nowrap;
+            text-shadow: 0 0 20px rgba(165,243,252,.4);
+        }
+        .nav-badge {
+            font-size: .75rem;
+            font-weight: 600;
+            color: var(--blue-deep);
+            background: var(--cyan-main);
+            padding: .15rem .6rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+        .nav-actions { display: flex; align-items: center; gap: .5rem; }
+
+        /* Botões */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: .8rem;
+            padding: .45rem 1.1rem;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+        .btn-primary { background: var(--cyan-main); color: #0c1a3a; }
+        .btn-primary:hover { background: var(--cyan-bright); box-shadow: 0 0 18px rgba(165,243,252,.45); transform: translateY(-1px); }
+        .btn-outline { background: transparent; color: var(--cyan-main); border: 1.5px solid rgba(165,243,252,.45); }
+        .btn-outline:hover { background: rgba(165,243,252,.08); border-color: var(--cyan-main); }
+        .btn-danger { background: transparent; color: #f87171; border: 1.5px solid rgba(248,113,113,.4); }
+        .btn-danger:hover { background: rgba(248,113,113,.1); border-color: #f87171; }
+        .btn-lg { font-size: .95rem; padding: .7rem 1.8rem; border-radius: 14px; }
+
+        /* Cards */
+        .card {
+            background: rgba(14,28,60,.7);
+            border: 1px solid rgba(165,243,252,.18);
+            border-radius: 16px;
+            padding: 1.75rem;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 32px rgba(0,0,0,.3);
+            transition: border-color .25s, box-shadow .25s;
+        }
+        .card:hover { border-color: rgba(165,243,252,.35); box-shadow: 0 6px 40px rgba(0,0,0,.4); }
+        .card-title { font-size: 1.2rem; font-weight: 700; color: var(--cyan-main); margin-bottom: 1rem; }
+
+        /* Inputs */
+        .input {
+            width: 100%;
+            padding: .75rem 1rem;
+            background: rgba(5,13,31,.7);
+            border: 1.5px solid rgba(165,243,252,.2);
+            border-radius: 10px;
+            color: var(--slate-light);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: .9rem;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+        .input::placeholder { color: rgba(148,163,184,.4); }
+        .input:focus { border-color: rgba(165,243,252,.6); box-shadow: 0 0 0 3px rgba(165,243,252,.1); }
+        .input-label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--slate-body);
+            text-transform: uppercase;
+            margin-bottom: .35rem;
+        }
+        .input-group { display: flex; flex-direction: column; gap: .35rem; }
+
+        /* Utilitários */
+        .divider { border: none; border-top: 1px solid rgba(165,243,252,.1); margin: 1.5rem 0; }
+        .main-content { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        .page-heading { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700; color: var(--cyan-main); text-shadow: 0 0 30px rgba(165,243,252,.3); }
+        .page-sub { color: var(--slate-body); font-size: 1rem; margin-top: .4rem; line-height: 1.6; }
+        .info-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            background: rgba(165,243,252,.07);
+            border: 1px solid rgba(165,243,252,.15);
+            border-radius: 999px;
+            padding: .3rem .8rem;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--cyan-main);
+        }
+
+        /* Alertas */
+        .alert { padding: .75rem 1rem; border-radius: 10px; font-size: .88rem; font-weight: 500; margin-bottom: 1rem; }
+        .alert-error { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); color: #fca5a5; }
+        .alert-success { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3); color: #6ee7b7; }
+
+        /* Opções de quiz */
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: .9rem 1.2rem;
+            border-radius: 12px;
+            border: 1.5px solid rgba(165,243,252,.15);
+            background: rgba(165,243,252,.04);
+            cursor: pointer;
+            transition: all .2s;
+            color: var(--slate-light);
+            font-size: .95rem;
+        }
+        .quiz-option:hover { border-color: rgba(165,243,252,.5); background: rgba(165,243,252,.1); color: #fff; transform: translateX(4px); }
+        .quiz-option input[type="radio"] { accent-color: var(--cyan-main); width: 18px; height: 18px; flex-shrink: 0; }
+        .quiz-option.selected { border-color: var(--cyan-main); background: rgba(165,243,252,.12); color: #fff; }
+
+        /* Placar */
+        .score-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .6rem .8rem;
+            border-radius: 10px;
+            background: rgba(165,243,252,.04);
+            border: 1px solid rgba(165,243,252,.1);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .85rem;
+            color: var(--slate-light);
+        }
+        .score-entry:hover { background: rgba(165,243,252,.08); }
+        .score-entry .rank { font-size: .75rem; font-weight: 700; color: var(--cyan-main); width: 1.4rem; }
+        .score-entry .pts { font-size: .78rem; color: var(--cyan-bright); font-weight: 600; }
+
+        /* Timer */
+        .timer-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--cyan-main);
+            background: rgba(165,243,252,.08);
+            border: 1.5px solid rgba(165,243,252,.25);
+            border-radius: 12px;
+            padding: .3rem .9rem;
+            display: inline-block;
+        }
+
+        /* Animações */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeUp .45s ease both; }
+        .delay-1 { animation-delay: .08s; }
+        .delay-2 { animation-delay: .16s; }
+        .delay-3 { animation-delay: .24s; }
+        @keyframes glowPulse { 0%,100% { box-shadow: 0 0 8px rgba(165,243,252,.3); } 50% { box-shadow: 0 0 22px rgba(165,243,252,.7); } }
+        .glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
+
+        /* Footer */
+        .site-footer {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            font-size: .75rem;
+            color: rgba(100,116,139,.5);
+            border-top: 1px solid rgba(165,243,252,.06);
+        }
+
+        /* Mobile hamburger */
+        .hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: .4rem; }
+        .hamburger span { display: block; width: 22px; height: 2px; background: var(--cyan-main); border-radius: 2px; transition: all .3s; }
+        .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+        .mobile-menu { display: none; background: rgba(14,28,60,.95); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(165,243,252,.15); padding: 1rem 1.5rem; flex-direction: column; gap: .5rem; }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu .btn { width: 100%; justify-content: center; border-radius: 10px; padding: .65rem 1rem; }
+
+        @media (max-width: 640px) {
+            .hamburger { display: flex; }
+            .nav-actions { display: none; }
+            .navbar { height: 60px; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(165,243,252,.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(165,243,252,.4); }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+<div id="page-wrapper">
+
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="{{ url_for('home') }}" class="nav-logo">
+                <img src="{{ url_for('static', filename='imagens/logo.png') }}" alt="Logo">
+                <span class="nav-logo-text">Quiztech Matemático</span>
+            </a>
+
+            {% block nav_badge %}{% endblock %}
+
+            <div class="nav-actions">
+                {% block nav_actions %}
+                {% if 'user' in session %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline"><i class="fa-solid fa-user"></i> Login</a>
+                {% endif %}
+                <a href="{{ url_for('room_create') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Criar Sala</a>
+                {% endblock %}
+            </div>
+
+            <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        {% block mobile_nav_actions %}
+        {% if 'user' in session %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-outline"><i class="fa-solid fa-user"></i> Login</a>
+        {% endif %}
+        <a href="{{ url_for('room_create') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Criar Sala</a>
+        {% endblock %}
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="max-width:1200px; margin:.75rem auto 0; padding:0 1.5rem; position:relative; z-index:10;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        {% block footer %}
+        <p>© Quiztech Matemático — Competição de Matemática Online</p>
+        {% endblock %}
+    </footer>
+
+</div>
+
+<script>
+    const btn  = document.getElementById('hamburgerBtn');
+    const menu = document.getElementById('mobileMenu');
+    if (btn && menu) {
+        btn.addEventListener('click', () => { btn.classList.toggle('open'); menu.classList.toggle('open'); });
+        document.addEventListener('click', e => {
+            if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                btn.classList.remove('open'); menu.classList.remove('open');
+            }
+        });
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationDelay = (i * .07) + 's';
+                entry.target.classList.add('animate-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: .1 });
+    document.querySelectorAll('.card').forEach(el => observer.observe(el));
+
+    document.querySelectorAll('.quiz-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            const form = opt.closest('form');
+            if (form) form.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            const radio = opt.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
+        });
+    });
+</script>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

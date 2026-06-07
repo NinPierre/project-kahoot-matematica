@@ -1,104 +1,78 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard do Professor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+{% extends 'base.html' %}
 
-<body class="bg-blue-950 text-slate-400 font-sans min-h-screen">
+{% block title %}Dashboard — Quiztech Matemático{% endblock %}
 
-    <header>
-    <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-        
-        <a href="{{ url_for('home') }}" class="flex items-center gap-3">
-            <div class="flex items-center justify-center">
-                <img src="../static/imagens/logo.png" alt="Logo" class="h-12 w-auto object-contain">
+{% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-chalkboard-user"></i> Professor</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:1.5rem;">
+
+    <div class="animate-in">
+        <h1 class="page-heading"><i class="fa-solid fa-gauge-high"></i> Dashboard do Professor</h1>
+        <p class="page-sub">Gerencie perguntas e salas de jogo.</p>
+    </div>
+
+    <!-- Adicionar pergunta -->
+    <div class="card animate-in delay-1">
+        <h2 class="card-title"><i class="fa-solid fa-circle-plus"></i> Adicionar Pergunta</h2>
+        <form action="#" method="POST" style="display:flex; flex-direction:column; gap:.75rem;">
+            <div class="input-group">
+                <label class="input-label"><i class="fa-solid fa-question"></i> Pergunta</label>
+                <input type="text" name="pergunta" placeholder="Digite a pergunta" class="input">
             </div>
-            <h1 class="text-cyan-200 text-2xl md:text-3xl font-bold">Quiztech Matemático</h1>
-        </a>
-
-        <h2 class="text-cyan-200 text-lg md:text-xl font-semibold text-center">Dashboard do Professor</h2>
-
-        <a href="{{ url_for('logout') }}" class="w-full md:w-auto text-center inline-block bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-6 rounded-full transition duration-300">
-            Sair
-        </a>
-    </nav>
-</header>
-
-    <main class="max-w-3xl mx-auto mt-6 md:mt-10 px-4 md:px-6">
-
-        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-4 md:p-6 mb-6">
-
-            <h2 class="text-cyan-200 text-xl md:text-2xl font-bold mb-4">Adicionar Pergunta</h2>
-
-            <form action="#" method="POST" class="flex flex-col gap-3">
-
-                <input type="text" name="pergunta" placeholder="Digite a pergunta"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
-
-                <input type="text" name="alternativa_a" placeholder="Alternativa A"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
-
-                <input type="text" name="alternativa_b" placeholder="Alternativa B"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
-
-                <input type="text" name="alternativa_c" placeholder="Alternativa C"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
-
-                <input type="text" name="alternativa_d" placeholder="Alternativa D"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
-
-                <input type="text" name="resposta_correta" placeholder="Resposta correta (A, B, C ou D)"
-                    class="p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm md:text-base">
-
-                <button type="submit"
-                    class="bg-cyan-200 text-blue-950 font-bold py-2.5 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base">
-                    Salvar Pergunta
-                </button>
-
-            </form>
-
-        </section>
-
-        <hr class="border-slate-700 mb-6">
-
-        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-4 md:p-6 mb-6">
-
-            <h2 class="text-cyan-200 text-xl md:text-2xl font-bold mb-4">Perguntas Criadas</h2>
-
-            <div>
-                <p class="text-sm md:text-base">Nenhuma pergunta cadastrada.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+                <div class="input-group">
+                    <label class="input-label">Alternativa A</label>
+                    <input type="text" name="alternativa_a" class="input">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Alternativa B</label>
+                    <input type="text" name="alternativa_b" class="input">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Alternativa C</label>
+                    <input type="text" name="alternativa_c" class="input">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Alternativa D</label>
+                    <input type="text" name="alternativa_d" class="input">
+                </div>
             </div>
-
-        </section>
-
-        <hr class="border-slate-700 mb-6">
-
-        <section class="bg-blue-900 border border-cyan-200 rounded-xl p-4 md:p-6 flex flex-col sm:flex-row flex-wrap gap-4 items-center">
-
-            <h2 class="text-cyan-200 text-xl md:text-2xl font-bold sm:w-full text-center sm:text-left">Gerenciamento</h2>
-
-            <button class="w-full sm:w-auto flex-1 bg-cyan-200 text-blue-950 font-bold py-2.5 px-4 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base">
-                Editar Perguntas
+            <div class="input-group">
+                <label class="input-label"><i class="fa-solid fa-check"></i> Resposta Correta (A, B, C ou D)</label>
+                <input type="text" name="resposta_correta" placeholder="Ex: B" class="input">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; border-radius:10px; padding:.7rem 1rem;">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Pergunta
             </button>
+        </form>
+    </div>
 
-            <button class="w-full sm:w-auto flex-1 bg-red-400 text-blue-950 font-bold py-2.5 px-4 rounded-lg hover:bg-red-500 transition text-sm md:text-base">
-                Excluir Perguntas
+    <hr class="divider">
+
+    <!-- Perguntas criadas -->
+    <div class="card animate-in delay-2">
+        <h2 class="card-title"><i class="fa-solid fa-list"></i> Perguntas Criadas</h2>
+        <p style="font-size:.88rem;"><i class="fa-solid fa-inbox" style="margin-right:.4rem; opacity:.5;"></i>Nenhuma pergunta cadastrada.</p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Gerenciamento -->
+    <div class="card animate-in delay-3">
+        <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Gerenciamento</h2>
+        <div style="display:flex; flex-wrap:wrap; gap:.75rem;">
+            <button class="btn btn-outline btn-lg" style="flex:1; min-width:140px;">
+                <i class="fa-solid fa-pen-to-square"></i> Editar Perguntas
             </button>
-
-            <button class="w-full sm:w-auto flex-1 bg-cyan-200 text-blue-950 font-bold py-2.5 px-4 rounded-lg hover:bg-cyan-300 transition text-sm md:text-base">
-                Criar Sala
+            <button class="btn btn-danger btn-lg" style="flex:1; min-width:140px;">
+                <i class="fa-solid fa-trash"></i> Excluir Perguntas
             </button>
+            <a href="{{ url_for('room_create') }}" class="btn btn-primary btn-lg" style="flex:1; min-width:140px; justify-content:center;">
+                <i class="fa-solid fa-plus"></i> Criar Sala
+            </a>
+        </div>
+    </div>
 
-        </section>
-
-    </main>
-
-    <footer class="text-center mt-10 mb-4 text-slate-600 text-xs md:text-sm">
-        <p>Painel do Professor</p>
-    </footer>
-
-</body>
-</html>
+</div>
+{% endblock %}

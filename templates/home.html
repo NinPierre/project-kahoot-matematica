@@ -1,123 +1,61 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiztech Matemático</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+{% block title %}Quiztech Matemático — Início{% endblock %}
 
-<body class="bg-blue-950 text-slate-400 font-sans min-h-screen antialiased">
-    <!-- Menu Totalmente Responsivo -->
-    <nav class="bg-blue-900 border-b-4 border-cyan-200 p-4">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-        
-            <a href="{{ url_for('home') }}" class="flex items-center justify-center sm:justify-start gap-3">
-                <div class="flex items-center justify-center">
-                    <img src="../static/imagens/logo.png" alt="Logo" class="h-12 w-auto object-contain">
-                </div>
-            
-                <h1 class="text-cyan-200 text-2xl md:text-3xl font-bold tracking-wide whitespace-nowrap">
-                Quiztech Matemático
-                </h1>
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+
+    <!-- Texto -->
+    <div class="text-center lg:text-left animate-in">
+        <h2 class="page-heading mb-4">Competição de Matemática Online</h2>
+        <p class="page-sub">
+            Teste seus conhecimentos e descubra quem é o melhor em matemática.
+            Complete questões no menor tempo possível para ganhar mais pontos que os demais competidores.
+        </p>
+        <p class="mt-4 font-semibold" style="color: var(--cyan-bright);">
+            <i class="fa-solid fa-trophy"></i> Os melhores colocados serão premiados.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3 justify-center lg:justify-start">
+            <a href="{{ url_for('room_create') }}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-plus"></i> Criar Sala
             </a>
-
-            <!-- Bloco de botões: em celulares pequenos eles se ajustam sozinhos verticalmente sem estourar as laterais -->
-            <div class="flex flex-col grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
-                {% if 'user' in session %}
-                    <a href="{{ url_for('dashboard') }}" class="text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-3 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm whitespace-nowrap">
-                        Dashboard
-                    </a>
-                    <a href="{{ url_for('logout') }}" class="text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-3 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm whitespace-nowrap">
-                        Sair
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="col-span-2 text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-4 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm">
-                        Login
-                    </a>
-                {% endif %}
-
-                <!-- O botão maior ganha a linha toda no mobile para não esmagar o texto "Criação de Salas" -->
-                <a href="{{ url_for('room_create') }}" class="col-span-2 text-center bg-cyan-200 hover:bg-cyan-300 text-blue-950 font-semibold py-2 px-4 rounded-xl sm:rounded-full transition duration-300 text-xs md:text-sm whitespace-nowrap">
-                    Criação de Salas
-                </a>
-            </div>
-
+            {% if not 'user' in session %}
+            <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg">
+                <i class="fa-solid fa-user"></i> Login
+            </a>
+            {% endif %}
         </div>
-    </nav>
+    </div>
 
-    <!-- Conteúdo Principal Adaptável -->
-    <!-- Mudança crucial: usamos o sistema de Grid do Tailwind que respeita o espaço real da tela -->
-    <main class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mt-6 md:mt-12 px-4 md:px-8 max-w-6xl mx-auto">
+    <!-- Card de pesquisa -->
+    <div class="card animate-in delay-1">
+        <h2 class="card-title"><i class="fa-solid fa-door-open"></i> Salas Disponíveis</h2>
 
-        <!-- Lado Esquerdo: Texto explicativo -->
-        <div class="w-full text-center lg:text-left flex flex-col justify-center">
-
-            <h2 class="text-cyan-200 text-2xl md:text-4xl font-bold mb-4">
-                Competição de Matemática Online
-            </h2>
-
-            <p class="text-sm md:text-base lg:text-lg leading-relaxed text-slate-300">
-                Uma competição de matemática online para testar quem é o melhor em matemática.
-                Complete questões no menor tempo possível para ganhar mais pontos que os demais competidores.
-            </p>
-
-            <p class="text-sm md:text-base lg:text-lg mt-4 font-semibold text-cyan-400">
-                Os melhores colocados serão premiados.
-            </p>
-
+        <div class="input-group mb-4">
+            <label class="input-label"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar sala</label>
+            <input type="text" placeholder="Digite o nome da sala" class="input">
         </div>
+        <button class="btn btn-primary" style="width:100%; border-radius:10px; padding:.65rem 1rem;">
+            <i class="fa-solid fa-magnifying-glass"></i> Pesquisar
+        </button>
 
-        <!-- Lado Direito: Pesquisa de Salas (Card) -->
-        <section class="w-full flex justify-center items-start">
+        <hr class="divider">
 
-            <!-- Substituído qualquer tamanho fixo por max-w-full para garantir que nunca transborde no iPhone -->
-            <div class="bg-blue-900 border-4 border-cyan-200 rounded-xl p-4 md:p-6 shadow-lg w-full max-w-md Box-border">
-
-                <h2 class="text-cyan-200 text-xl md:text-2xl font-bold mb-3 text-center sm:text-left">
-                    Salas Disponíveis
-                </h2>
-
-                <h3 class="mb-2 text-xs md:text-sm text-slate-300">
-                    Pesquisar salas
-                </h3>
-
-                <input
-                    type="text"
-                    placeholder="Digite o nome da sala"
-                    class="w-full p-3 rounded-lg bg-blue-950 border border-cyan-200 text-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 text-sm">
-
-                <button
-                    class="w-full mt-3 bg-cyan-200 text-blue-950 font-bold py-2.5 rounded-lg hover:bg-cyan-300 transition text-sm tracking-wide">
-                    Pesquisar
-                </button>
-
-                <!-- Informações extras da sala ajustadas para não quebrar linha de forma feia no mobile -->
-                <div class="text-xs md:text-sm font-medium text-slate-300">
-                    <div class="mt-4 border-b border-slate-700/60 pb-2 flex justify-between gap-2">
-                        <span>Dificuldade</span>
-                        <span class="text-cyan-300/70">—</span>
-                    </div>
-                    <div class="mt-2 border-b border-slate-700/60 pb-2 flex justify-between gap-2">
-                        <span>Série</span>
-                        <span class="text-cyan-300/70">—</span>
-                    </div>
-                    <div class="mt-2 border-b border-slate-700/60 pb-2 flex justify-between gap-2">
-                        <span>Máx. de jogadores</span>
-                        <span class="text-cyan-300/70">—</span>
-                    </div>
-                </div>
-
+        <div style="display:flex; flex-direction:column; gap:.5rem; font-size:.85rem;">
+            <div style="display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px solid rgba(165,243,252,.08);">
+                <span><i class="fa-solid fa-fire" style="color:var(--cyan-main); margin-right:.4rem;"></i>Dificuldade</span>
+                <span style="color:var(--cyan-bright)">—</span>
             </div>
+            <div style="display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px solid rgba(165,243,252,.08);">
+                <span><i class="fa-solid fa-graduation-cap" style="color:var(--cyan-main); margin-right:.4rem;"></i>Série</span>
+                <span style="color:var(--cyan-bright)">—</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:.4rem 0;">
+                <span><i class="fa-solid fa-users" style="color:var(--cyan-main); margin-right:.4rem;"></i>Máx. de jogadores</span>
+                <span style="color:var(--cyan-bright)">—</span>
+            </div>
+        </div>
+    </div>
 
-        </section>
-
-    </main>
-
-    <footer class="text-center py-8 text-slate-600 text-xs">
-        <p>© Λ próklesi — Painel de Competição</p>
-    </footer>
-</body>
-
-</html>
+</div>
+{% endblock %}
