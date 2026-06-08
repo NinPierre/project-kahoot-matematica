@@ -5,7 +5,10 @@
 {% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-gamepad"></i> Sala</span>{% endblock %}
 
 {% block nav_actions %}
-    <a href="{{ url_for('home') }}" class="btn btn-danger"><i class="fa-solid fa-door-open"></i> Sair da Sala</a>
+    <!--serve para abri um modall de confirmaçao-->
+    <a href="javascript:void(0)" onclick="confirmarSaida(homeUrl)" class="btn btn-danger">
+     <i class="fa-solid fa-door-open"></i> Sair da Sala
+</a>
     {% if 'user' not in session %}
         <a href="{{ url_for('login') }}" class="btn btn-outline"><i class="fa-solid fa-user"></i> Login</a>
     {% endif %}
@@ -71,4 +74,72 @@
         [style*="grid-template-columns:220px"] { grid-template-columns: 1fr !important; }
     }
 </style>
+<!--js para o modall-->
+<script>
+const homeUrl = "{{ url_for('home') }}";
+function confirmarSaida(url) {
+    const modal = document.createElement("div");
+
+    modal.className = "modal";
+
+    modal.innerHTML = `
+        <div style="
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.6);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            z-index:9999;">
+
+            <div style="
+                background:#0f172a;
+                color:white;
+                padding:20px;
+                border-radius:12px;
+                width:90%;
+                max-width:350px;
+                text-align:center;
+                border:1px solid #22d3ee;">
+
+                <h3 style="margin-bottom:10px;">
+                    Confirmar saída
+                </h3>
+
+                <p style="margin-bottom:15px;">
+                    Tem certeza que deseja sair da sala?
+                </p>
+
+                <div style="display:flex;gap:10px;justify-content:center;">
+                    <button
+                        onclick="window.location.href='${url}'"
+                        style="
+                            background:#dc2626;
+                            color:white;
+                            border:none;
+                            padding:8px 16px;
+                            border-radius:8px;
+                            cursor:pointer;">
+                        Sair
+                    </button>
+
+                    <button
+                        onclick="document.querySelector('.modal').remove()"
+                        style="
+                            background:#475569;
+                            color:white;
+                            border:none;
+                            padding:8px 16px;
+                            border-radius:8px;
+                            cursor:pointer;">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+</script>
 {% endblock %}

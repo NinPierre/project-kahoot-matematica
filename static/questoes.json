@@ -1,0 +1,482 @@
+[
+  {
+    "id": 1,
+    "pergunta": "Quanto é 15 + 27?",
+    "opcoes": [
+      "32",
+      "42",
+      "52",
+      "38"
+    ],
+    "respostaCorreta": "42",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 2,
+    "pergunta": "Quanto é 9 × 8?",
+    "opcoes": [
+      "72",
+      "64",
+      "81",
+      "78"
+    ],
+    "respostaCorreta": "72",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 3,
+    "pergunta": "Qual é a raiz quadrada de 81?",
+    "opcoes": [
+      "8",
+      "9",
+      "7",
+      "6"
+    ],
+    "respostaCorreta": "9",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 4,
+    "pergunta": "Quanto é 25% de 200?",
+    "opcoes": [
+      "25",
+      "50",
+      "75",
+      "100"
+    ],
+    "respostaCorreta": "50",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 5,
+    "pergunta": "Resolva: 2x + 6 = 18",
+    "opcoes": [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "respostaCorreta": "6",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 6,
+    "pergunta": "Qual é a área de um retângulo com base 8 e altura 5?",
+    "opcoes": [
+      "13",
+      "40",
+      "35",
+      "45"
+    ],
+    "respostaCorreta": "40",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 7,
+    "pergunta": "Qual é o resultado de 2³ × 3²?",
+    "opcoes": [
+      "72",
+      "48",
+      "36",
+      "64"
+    ],
+    "respostaCorreta": "72",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 8,
+    "pergunta": "Qual é a média dos números 4, 6, 8 e 10?",
+    "opcoes": [
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "respostaCorreta": "7",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 9,
+    "pergunta": "Resolva: x² - 5x + 6 = 0",
+    "opcoes": [
+      "x = 2 e x = 3",
+      "x = 1 e x = 6",
+      "x = -2 e x = -3",
+      "x = 0 e x = 6"
+    ],
+    "respostaCorreta": "x = 2 e x = 3",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 10,
+    "pergunta": "Qual é o valor de log₁₀(1000)?",
+    "opcoes": [
+      "2",
+      "3",
+      "10",
+      "100"
+    ],
+    "respostaCorreta": "3",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 11,
+    "pergunta": "Qual é a derivada de f(x) = x²?",
+    "opcoes": [
+      "x",
+      "2x",
+      "x²",
+      "2"
+    ],
+    "respostaCorreta": "2x",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 12,
+    "pergunta": "Qual é a soma dos ângulos internos de um hexágono?",
+    "opcoes": [
+      "540°",
+      "720°",
+      "900°",
+      "1080°"
+    ],
+    "respostaCorreta": "720°",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 13,
+    "pergunta": "Qual é o valor aproximado de π?",
+    "opcoes": [
+      "3,12",
+      "3,14",
+      "3,16",
+      "3,18"
+    ],
+    "respostaCorreta": "3,14",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 14,
+    "pergunta": "Uma moeda justa é lançada. Qual a probabilidade de sair cara?",
+    "opcoes": [
+      "1/4",
+      "1/2",
+      "3/4",
+      "1"
+    ],
+    "respostaCorreta": "1/2",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 15,
+    "pergunta": "Resolva: 3x - 7 = 11",
+    "opcoes": [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "respostaCorreta": "6",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 16,
+    "pergunta": "Qual é o MMC de 12 e 18?",
+    "opcoes": [
+      "24",
+      "36",
+      "48",
+      "72"
+    ],
+    "respostaCorreta": "36",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 17,
+    "pergunta": "Quanto é 7²?",
+    "opcoes": [
+      "14",
+      "49",
+      "42",
+      "56"
+    ],
+    "respostaCorreta": "49",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 18,
+    "pergunta": "Qual é o valor de sen(30°)?",
+    "opcoes": [
+      "1",
+      "1/2",
+      "0",
+      "√2/2"
+    ],
+    "respostaCorreta": "1/2",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 19,
+    "pergunta": "Qual é o 5º termo da PA: 2, 5, 8, 11, ...?",
+    "opcoes": [
+      "12",
+      "13",
+      "14",
+      "15"
+    ],
+    "respostaCorreta": "14",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 20,
+    "pergunta": "Qual é a solução de x² = 49?",
+    "opcoes": [
+      "7",
+      "14",
+      "±7",
+      "49"
+    ],
+    "respostaCorreta": "±7",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 21,
+    "pergunta": "Ana tem o dobro da idade de Bia. Bia tem 12 anos. Qual a idade di Ana?",
+    "opcoes": [
+      "12",
+      "18",
+      "20",
+      "24"
+    ],
+    "respostaCorreta": "24",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 22,
+    "pergunta": "Se 5 máquinas produzem 100 peças em 2 horas, quantas peças 3 máquinas produzem em 4 horas?",
+    "opcoes": [
+      "80",
+      "100",
+      "120",
+      "140"
+    ],
+    "respostaCorreta": "120",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 23,
+    "pergunta": "Em uma festa, há 40 pessoas. Se 25% são homens, quantas mulheres há?",
+    "opcoes": [
+      "10",
+      "20",
+      "25",
+      "30"
+    ],
+    "respostaCorreta": "30",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 24,
+    "pergunta": "Se um número somado ao seu dobro resulta em 30, qual é o número?",
+    "opcoes": [
+      "10",
+      "12",
+      "15",
+      "18"
+    ],
+    "respostaCorreta": "10",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 25,
+    "pergunta": "Qual o próximo número da sequência: 3, 6, 9, 12, __?",
+    "opcoes": [
+      "13",
+      "14",
+      "15",
+      "16"
+    ],
+    "respostaCorreta": "15",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 26,
+    "pergunta": "Em uma caixa, há bolas vermelhas e azuis na razão 3:5. Se há 15 vermelhas, quantas azuis existem?",
+    "opcoes": [
+      "20",
+      "25",
+      "30",
+      "35"
+    ],
+    "respostaCorreta": "25",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 27,
+    "pergunta": "Um relógio atrasa 2 minutos por hora. Após 6 horas, quantos minutos ele estará atrasado?",
+    "opcoes": [
+      "6",
+      "8",
+      "10",
+      "12"
+    ],
+    "respostaCorreta": "12",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 28,
+    "pergunta": "Se 3/4 de um número é 18, qual é o número?",
+    "opcoes": [
+      "20",
+      "22",
+      "24",
+      "26"
+    ],
+    "respostaCorreta": "24",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 29,
+    "pergunta": "João tem R$ 150. Gasta 2/5 dessa quantia. Quanto sobra?",
+    "opcoes": [
+      "60",
+      "70",
+      "80",
+      "90"
+    ],
+    "respostaCorreta": "90",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 30,
+    "pergunta": "Em um torneio de xadrez, cada jogador joga uma partida contra todos os outros. Se há 5 jogadores, quantas partidas são disputadas?",
+    "opcoes": [
+      "5",
+      "8",
+      "10",
+      "15"
+    ],
+    "respostaCorreta": "10",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 31,
+    "pergunta": "Um número é 3 vezes maior que outro. A soma dos dois é 48. Qual o menor número?",
+    "opcoes": [
+      "10",
+      "12",
+      "14",
+      "16"
+    ],
+    "respostaCorreta": "12",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 32,
+    "pergunta": "Se 8 homens constroem um muro em 5 dias, quantos dias 10 homens levariam para construir o mesmo muro?",
+    "opcoes": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "respostaCorreta": "4",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 33,
+    "pergunta": "O dobro da idade de Pedro é igual à idade de sua mãe menos 10 anos. Se a mãe tem 40 anos, qual a idade de Pedro?",
+    "opcoes": [
+      "10",
+      "12",
+      "15",
+      "18"
+    ],
+    "respostaCorreta": "15",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 34,
+    "pergunta": "Qual é o menor número inteiro positivo que é divisível por 2, 3 e 5?",
+    "opcoes": [
+      "10",
+      "15",
+      "20",
+      "30"
+    ],
+    "respostaCorreta": "30",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 35,
+    "pergunta": "Em uma progressão aritmética, o primeiro termo é 4 e a razão é 3. Qual é o 6º termo?",
+    "opcoes": [
+      "13",
+      "15",
+      "17",
+      "19"
+    ],
+    "respostaCorreta": "19",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 36,
+    "pergunta": "Maria comprou 3 camisetas por R$ 12,00 cada e 2 calças por R$ 25,00 cada. Quanto gastou no total?",
+    "opcoes": [
+      "70",
+      "72",
+      "74",
+      "86"
+    ],
+    "respostaCorreta": "86",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 37,
+    "pergunta": "Se um cubo tem aresta 4 cm, qual é seu volume?",
+    "opcoes": [
+      "16 cm³",
+      "32 cm³",
+      "48 cm³",
+      "64 cm³"
+    ],
+    "respostaCorreta": "64 cm³",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 38,
+    "pergunta": "João disse: 'Se eu tivesse 5 reais a mais, teria o dobro do que tenho.' Quanto João tem?",
+    "opcoes": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "respostaCorreta": "5",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 39,
+    "pergunta": "Em uma prova com 10 questões, cada acerto vale 3 pontos e cada erro perde 1 ponto. Se uma pessoa fez 14 pontos, quantas questões acertou?",
+    "opcoes": [
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "respostaCorreta": "6",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 40,
+    "pergunta": "Três irmãos têm idades somando 36 anos. O mais velho tem o dobro da idade do mais novo, e o do meio tem a média das idades dos outros dois. Qual a idade do mais velho?",
+    "opcoes": [
+      "12",
+      "14",
+      "16",
+      "18"
+    ],
+    "respostaCorreta": "16",
+    "dificuldade": "dificil"
+  }
+]
