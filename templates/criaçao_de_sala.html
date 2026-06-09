@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Criar Sala — Quiztech Matemático{% endblock %}
+
+{% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-plus"></i> Nova Sala</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:820px; margin:0 auto; display:flex; flex-direction:column; gap:1.5rem;">
+    <div class="animate-in create-heading">
+        <h1 class="page-heading"><i class="fa-solid fa-door-open"></i> Criar Sala</h1>
+        <p class="page-sub">Configure a partida. Depois você escolhe seu nome e personagem antes de entrar na espera.</p>
+    </div>
+
+    <div class="card animate-in delay-1">
+        <form action="{{ url_for('room_create') }}" method="POST" style="display:flex; flex-direction:column; gap:1rem;">
+            <input type="hidden" name="player_token" class="player-token-field">
+            <div class="input-group">
+                <label class="input-label"><i class="fa-solid fa-signature"></i> Nome da sala</label>
+                <input type="text" name="nome_sala" placeholder="Ex: salinha do pierre" class="input" required>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="input-group">
+                    <label class="input-label"><i class="fa-solid fa-fire"></i> Dificuldade</label>
+                    <select name="dificuldade" class="input">
+                        {% for valor, label in dificuldades.items() %}
+                            <option value="{{ valor }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label"><i class="fa-solid fa-graduation-cap"></i> Série</label>
+                    <!-- A série é uma etiqueta da turma -->
+                    <select name="serie" class="input">
+                        {% for serie in series %}
+                            <option value="{{ serie }}">{{ serie }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="input-group">
+                    <label class="input-label"><i class="fa-solid fa-users"></i> Máximo de jogadores</label>
+                    <input type="number" name="max_jogadores" min="1" max="100" value="20" class="input" required>
+                </div>
+                <div class="input-group">
+                    <label class="input-label"><i class="fa-solid fa-list-ol"></i> Rodadas</label>
+                    <select id="rodadas" name="rodadas" class="input">
+                        <option value="4">4 rodadas</option>
+                        <option value="6">6 rodadas</option>
+                        <option value="8">8 rodadas</option>
+                        <option value="10">10 rodadas</option>
+                        <option value="12">12 rodadas</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group hidden" id="campoRodadasPersonalizadas">
+                <label class="input-label">Quantidade personalizada de rodadas</label>
+                <input type="number" id="rodadasCustomizadas" name="rodadas_customizadas" min="1" max="30" placeholder="Ex: 15" class="input">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="input-group">
+                    <label class="input-label"><i class="fa-solid fa-stopwatch"></i> Tempo por pergunta</label>
+                    <select id="tempo" name="tempo_opcao" class="input">
+                        <option value="45">45 segundos</option>
+                        <option value="60" selected>1 minuto</option>
+                        <option value="90">1 minuto e 30 segundos</option>
+                        <option value="120">2 minutos</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </div>
+                <div class="input-group hidden" id="campoTempoPersonalizado">
+                    <label class="input-label">Tempo personalizado em segundos</label>
+                    <input type="number" id="tempoCustomizado" name="tempo_customizado" min="10" max="300" placeholder="Ex: 75" class="input">
+                </div>
+            </div>
+
+            <div class="api-options-grid">
+                <label class="api-boost-card">
+                    <input type="checkbox" name="api_frequente" class="api-frequente-toggle">
+                    <span>
+                        <strong><i class="fa-solid fa-cloud-arrow-down"></i> Perguntas da API</strong>
+                        <small>Ative para as perguntas da Api aparecerem com mais frequência.</small>
+                    </span>
+                </label>
+                <label class="api-boost-card api-off-card">
+                    <input type="checkbox" name="api_desativada" class="api-desativada-toggle">
+                    <span>
+                        <strong><i class="fa-solid fa-ban"></i> Desativar API</strong>
+                        <small>Use só as perguntas dos JSONs locais da pasta static.</small>
+                    </span>
+                </label>
+            </div>
+
+            <div class="bonus-config-card">
+                <div>
+                    <strong><i class="fa-solid fa-bolt"></i> Rodada bônus x2</strong>
+                    <small>Chance de uma pergunta virar rodada especial e dobrar os pontos dela.</small>
+                </div>
+                <select name="chance_x2" class="input">
+                    {% for chance in range(0, 101, 5) %}
+                        <option value="{{ chance }}" {% if chance == 10 %}selected{% endif %}>
+                            {% if chance == 0 %}Desativado{% else %}{{ chance }}% de chance{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="card" style="padding:1rem; background:rgba(165,243,252,.045);">
+                <button type="button" class="btn btn-outline" id="btnSenha" style="border-radius:10px;">
+                    <i class="fa-solid fa-lock"></i> Adicionar senha
+                </button>
+                <div class="input-group hidden" id="campoSenha" style="margin-top:.9rem;">
+                    <label class="input-label">Senha da sala</label>
+                    <input type="password" name="senha" id="senha" placeholder="Quem entrar precisará dela" class="input">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="justify-content:center;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Criar sala
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .api-options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .85rem;
+    }
+    .api-boost-card {
+        display: flex;
+        align-items: flex-start;
+        gap: .8rem;
+        border: 1px solid rgba(165,243,252,.18);
+        border-radius: 14px;
+        background: rgba(165,243,252,.055);
+        padding: 1rem;
+        cursor: pointer;
+    }
+    .api-boost-card input {
+        width: 20px;
+        height: 20px;
+        margin-top: .15rem;
+        accent-color: var(--cyan-main);
+        flex-shrink: 0;
+    }
+    .api-boost-card strong {
+        display: block;
+        color: #fff;
+        margin-bottom: .25rem;
+    }
+    .api-boost-card small {
+        display: block;
+        color: var(--slate-body);
+        line-height: 1.45;
+    }
+    .api-off-card {
+        border-color: rgba(248,113,113,.24);
+        background: rgba(248,113,113,.055);
+    }
+    .api-off-card input {
+        accent-color: #f87171;
+    }
+    .bonus-config-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 210px;
+        gap: .9rem;
+        align-items: center;
+        border: 1px solid rgba(250,204,21,.24);
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(250,204,21,.09), rgba(165,243,252,.045));
+        padding: 1rem;
+    }
+    .bonus-config-card strong {
+        display: block;
+        color: #fff;
+        margin-bottom: .25rem;
+    }
+    .bonus-config-card small {
+        display: block;
+        color: var(--slate-body);
+        line-height: 1.45;
+    }
+    @media (max-width: 720px) {
+        [style*="grid-template-columns:1fr 1fr"],
+        .api-options-grid { grid-template-columns: 1fr !important; }
+        .bonus-config-card { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+        .create-heading {
+            max-width: 330px;
+            overflow: hidden;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const btnSenha = document.getElementById('btnSenha');
+    const campoSenha = document.getElementById('campoSenha');
+    const senha = document.getElementById('senha');
+    btnSenha.addEventListener('click', () => {
+        campoSenha.classList.toggle('hidden');
+        const aberta = !campoSenha.classList.contains('hidden');
+        btnSenha.innerHTML = aberta
+            ? '<i class="fa-solid fa-lock-open"></i> Remover senha'
+            : '<i class="fa-solid fa-lock"></i> Adicionar senha';
+        if (!aberta) senha.value = '';
+    });
+
+    // Reaproveito a mesma função para tempo
+    function alternarPersonalizado(selectId, campoId, inputId) {
+        const select = document.getElementById(selectId);
+        const campo = document.getElementById(campoId);
+        const input = document.getElementById(inputId);
+        const atualizar = () => {
+            const mostrar = select.value === 'personalizado';
+            campo.classList.toggle('hidden', !mostrar);
+            input.required = mostrar;
+            if (!mostrar) input.value = '';
+        };
+        select.addEventListener('change', atualizar);
+        atualizar();
+    }
+
+    alternarPersonalizado('tempo', 'campoTempoPersonalizado', 'tempoCustomizado');
+    alternarPersonalizado('rodadas', 'campoRodadasPersonalizadas', 'rodadasCustomizadas');
+
+    document.querySelectorAll('.api-options-grid').forEach(grupo => {
+        const frequente = grupo.querySelector('.api-frequente-toggle');
+        const desativada = grupo.querySelector('.api-desativada-toggle');
+        desativada.addEventListener('change', () => {
+            if (desativada.checked) frequente.checked = false;
+        });
+        frequente.addEventListener('change', () => {
+            if (frequente.checked) desativada.checked = false;
+        });
+    });
+
+    function criarTokenDeAba() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    const playerToken = sessionStorage.getItem('quiztech_player_token') || criarTokenDeAba();
+    sessionStorage.setItem('quiztech_player_token', playerToken);
+    document.querySelectorAll('.player-token-field').forEach(input => input.value = playerToken);
+</script>
+{% endblock %}

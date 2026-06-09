@@ -1,0 +1,41 @@
+[
+  {
+    "id": "63fe3f65",
+    "pergunta": "O Ruan tem 5 bananas. O Vinícius foi lá e pegou uma quantidade x de bananas do Ruan para fazer um lanche. Sabendo que sobrou apenas 4 bananas na mão do Ruan, qual equação do primeiro grau representa perfeitamente essa situação para descobrir quantas bananas o Vinícius pegou?",
+    "opcoes": [
+      "5−x=4",
+      "5+x=4",
+      "5x=4",
+      "x−5=4"
+    ],
+    "respostaCorreta": "5−x=4",
+    "dificuldade": "facil",
+    "serie": "Geral"
+  },
+  {
+    "id": "a7786248",
+    "pergunta": "Marcelo e José Wandson participaram da prova do programa Do Piauí para o Mundo, que possui 45 questões.  Marcelo acertou 36 questões e José Wandson acertou 42 questões.  Qual foi a média de acertos da dupla?",
+    "opcoes": [
+      "37",
+      "40",
+      "38",
+      "39"
+    ],
+    "respostaCorreta": "39",
+    "dificuldade": "facil",
+    "serie": "Geral"
+  },
+  {
+    "id": "835590e3",
+    "pergunta": "Na primeira fase do programa Do Piauí para o Mundo, participaram cerca de 45.000 estudantes, concorrendo a 500 vagas para as próximas etapas do processo seletivo.  Se apenas os 500 melhores estudantes forem classificados, qual é aproximadamente a porcentagem de candidatos que avançará para a próxima fase?",
+    "opcoes": [
+      "0,5%",
+      "4,2%",
+      "1%",
+      "1,1%"
+    ],
+    "respostaCorreta": "1,1%",
+    "dificuldade": "dificil",
+    "serie": "Geral"
+  }
+]

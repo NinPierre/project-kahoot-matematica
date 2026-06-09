@@ -8,7 +8,46 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script>
+     var socket = io();
+     
 
+     function enviar() {
+        var msg = document.getElementById('msg').value;
+        socket.emit('message', msg);
+        document.getElementById('msg').value = '';
+     }
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </script>
     <style>
         :root {
             --cyan-main:   #a5f3fc;
@@ -25,6 +64,7 @@
             background-color: #050d1f;
             color: var(--slate-body);
             min-height: 100vh;
+            margin: 0;
             overflow-x: hidden;
         }
 
@@ -178,8 +218,13 @@
         /* Utilitários */
         .divider { border: none; border-top: 1px solid rgba(165,243,252,.1); margin: 1.5rem 0; }
         .main-content { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 2.5rem 1.5rem; }
-        .page-heading { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700; color: var(--cyan-main); text-shadow: 0 0 30px rgba(165,243,252,.3); }
-        .page-sub { color: var(--slate-body); font-size: 1rem; margin-top: .4rem; line-height: 1.6; }
+        .main-content *,
+        .card,
+        .room-card { min-width: 0; }
+        .page-heading { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700; color: var(--cyan-main); text-shadow: 0 0 30px rgba(165,243,252,.3); line-height: 1.15; overflow-wrap: anywhere; }
+        .page-sub { color: var(--slate-body); font-size: 1rem; margin-top: .4rem; line-height: 1.6; overflow-wrap: anywhere; }
+        /* Essa classe precisa vencer cards, grids e inputs que também usam display. */
+        .hidden { display: none !important; }
         .info-pill {
             display: inline-flex;
             align-items: center;
@@ -192,6 +237,147 @@
             font-weight: 600;
             color: var(--cyan-main);
         }
+
+        .room-card {
+            display: flex;
+            flex-direction: column;
+            gap: .85rem;
+            padding: 1rem;
+            border-radius: 14px;
+            border: 1px solid rgba(165,243,252,.16);
+            background: rgba(165,243,252,.045);
+            text-decoration: none;
+            color: var(--slate-light);
+            transition: transform .2s, border-color .2s, background .2s;
+        }
+        .room-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(165,243,252,.48);
+            background: rgba(165,243,252,.09);
+        }
+        .room-card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            color: #fff;
+            font-weight: 700;
+        }
+        .room-card-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: .5rem;
+            font-size: .78rem;
+        }
+        .meta-box {
+            border-radius: 10px;
+            border: 1px solid rgba(165,243,252,.12);
+            background: rgba(5,13,31,.45);
+            padding: .55rem;
+        }
+        .meta-box span { display:block; color: rgba(203,213,225,.62); font-size:.68rem; text-transform:uppercase; }
+        .meta-box strong { display:block; color: var(--cyan-bright); margin-top:.15rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+            gap: .75rem;
+        }
+        .avatar-option {
+            position: relative;
+            display: grid;
+            place-items: center;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 2px solid rgba(165,243,252,.18);
+            background: rgba(5,13,31,.55);
+            cursor: pointer;
+            transition: transform .2s, border-color .2s, box-shadow .2s;
+        }
+        .avatar-option img {
+            width: 82%;
+            height: 82%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .avatar-option input { position:absolute; opacity:0; pointer-events:none; }
+        .avatar-option:has(input:checked) {
+            border-color: var(--cyan-main);
+            box-shadow: 0 0 0 4px rgba(165,243,252,.12), 0 0 22px rgba(165,243,252,.28);
+            transform: translateY(-2px);
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            display: none;
+            place-items: center;
+            z-index: 9999;
+            padding: 1rem;
+            background: rgba(2,6,23,.78);
+            backdrop-filter: blur(10px);
+        }
+        .modal-backdrop.open { display: grid; }
+        .modal-panel {
+            width: min(560px, 100%);
+            max-height: 92vh;
+            overflow: auto;
+            border-radius: 18px;
+            border: 1px solid rgba(165,243,252,.28);
+            background: #071329;
+            box-shadow: 0 24px 80px rgba(0,0,0,.55);
+            padding: 1.4rem;
+        }
+        .top-toast {
+            position: fixed;
+            top: 84px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            width: min(520px, calc(100vw - 2rem));
+            border: 1px solid rgba(248,113,113,.35);
+            border-radius: 16px;
+            background: rgba(127,29,29,.92);
+            color: #fee2e2;
+            padding: 1rem 1.15rem;
+            box-shadow: 0 18px 50px rgba(0,0,0,.5);
+            backdrop-filter: blur(12px);
+            animation: toastDrop .35s ease both;
+        }
+        .top-toast strong {
+            display: block;
+            color: #fff;
+            margin-bottom: .2rem;
+        }
+        @keyframes toastDrop {
+            from { opacity: 0; transform: translate(-50%, -18px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .player-chip {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            border-radius: 12px;
+            border: 1px solid rgba(165,243,252,.12);
+            background: rgba(165,243,252,.05);
+            padding: .65rem;
+        }
+        .player-chip img,
+        .score-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(165,243,252,.32);
+        }
+
+        @keyframes countPop {
+            0% { opacity: 0; transform: scale(.35) rotate(-10deg); }
+            35% { opacity: 1; transform: scale(1.2) rotate(4deg); }
+            100% { opacity: 0; transform: scale(.9); }
+        }
+        .countdown-pop { animation: countPop .9s ease both; }
 
         /* Alertas */
         .alert { padding: .75rem 1rem; border-radius: 10px; font-size: .88rem; font-weight: 500; margin-bottom: 1rem; }
@@ -278,6 +464,93 @@
             .hamburger { display: flex; }
             .nav-actions { display: none; }
             .navbar { height: 60px; }
+            .navbar { padding: 0 .85rem; }
+            .nav-logo-text { font-size: 1rem; max-width: 42vw; overflow: hidden; text-overflow: ellipsis; }
+            .nav-badge { display: none; }
+            .main-content { padding: 1.25rem .9rem; }
+            .page-heading { font-size: 1.55rem; }
+            .card { padding: 1rem; border-radius: 14px; }
+            .btn-lg { width: 100%; justify-content: center; padding: .75rem 1rem; }
+            .timer-badge { font-size: 1.05rem; padding: .25rem .65rem; }
+            .score-entry { gap: .45rem; }
+            .avatar-grid { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); }
+            .modal-panel { padding: 1rem; border-radius: 14px; }
+        }
+
+        @media (max-width: 390px) {
+            .nav-logo-text { display: none; }
+            .main-content { padding-inline: .7rem; }
+            .room-card-title { align-items: flex-start; flex-direction: column; }
+        }
+
+        @media (hover: none) {
+            .room-card:hover,
+            .quiz-option:hover {
+                transform: none;
+            }
+        }
+
+        .credits-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at 50% 15%, rgba(165,243,252,.16), transparent 34%),
+                #000;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+        .credits-roll {
+            width: min(760px, calc(100vw - 2rem));
+            text-align: center;
+            animation: creditsRoll 34s linear forwards;
+        }
+        .credits-roll h1 {
+            color: #a5f3fc;
+            font-size: clamp(2rem, 8vw, 5rem);
+            margin: 0 0 3rem;
+            text-shadow: 0 0 30px rgba(165,243,252,.65);
+        }
+        .credits-group {
+            margin: 0 0 4rem;
+        }
+        .credits-group h2 {
+            color: #67e8f9;
+            font-size: clamp(1.2rem, 4vw, 2.4rem);
+            margin: 0 0 1.2rem;
+            text-transform: uppercase;
+        }
+        .credits-group p {
+            margin: .35rem 0;
+            font-size: clamp(1rem, 3.4vw, 1.8rem);
+            color: #f8fafc;
+        }
+        .credits-end {
+            position: fixed;
+            z-index: 20001;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: #a5f3fc;
+            font-size: clamp(3.4rem, 18vw, 10rem);
+            font-weight: 900;
+            letter-spacing: .16em;
+            text-shadow: 0 0 34px rgba(165,243,252,.82), 0 0 90px rgba(103,232,249,.45);
+            opacity: 0;
+            transform: scale(.86);
+            pointer-events: none;
+        }
+        .credits-end.show {
+            animation: creditsEnd 1.4s ease forwards;
+        }
+        @keyframes creditsRoll {
+            from { transform: translateY(75vh); }
+            to { transform: translateY(-110%); }
+        }
+        @keyframes creditsEnd {
+            to { opacity: 1; transform: scale(1); }
         }
 
         ::-webkit-scrollbar { width: 6px; }
@@ -385,6 +658,83 @@
             if (radio) radio.checked = true;
         });
     });
+
+    (() => {
+        // Créditos.
+        const k = 'qt_seq';
+        const read = () => JSON.parse(sessionStorage.getItem(k) || '{"n":0,"c":0}');
+        const save = value => sessionStorage.setItem(k, JSON.stringify(value));
+        const groups = [
+            ['Design', ['Natalia', 'Mavi', 'Enzo', 'Marilia', 'Ana Cecilia', 'Ana Raquel']],
+            ['Apresentação', ['Zé', 'Mayane', 'Lara', 'Nara', 'Amelia', 'Ducy']],
+            ['Dev', ['Flavio', 'Ruam', 'Vini', 'Trindade', 'Marcelo', 'Pierre', 'Joao Paulo']],
+            ['Questões', ['David', 'Gabi', 'Alex', 'Zaquel', 'Darla']]
+        ];
+
+        function showCredits() {
+            if (document.querySelector('.credits-screen')) return;
+            const screen = document.createElement('div');
+            screen.className = 'credits-screen';
+            screen.innerHTML = `
+                <div class="credits-roll">
+                    <h1>Quiztech Matemático</h1>
+                    ${groups.map(([title, names]) => `
+                        <section class="credits-group">
+                            <h2>${title}</h2>
+                            ${names.map(name => `<p>${name}</p>`).join('')}
+                        </section>
+                    `).join('')}
+                    <section class="credits-group">
+                        <h2>Obrigado por jogar</h2>
+                        <p>Prof: Tito</p>
+                        <p>Projeto Kahoot Matemática</p>
+                    </section>
+                </div>
+                <div class="credits-end">FIM</div>
+            `;
+            document.body.appendChild(screen);
+            save({ n: 0, c: 0 });
+
+            const fim = screen.querySelector('.credits-end');
+            const voltarParaHome = () => {
+                fim.classList.add('show');
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('home') }}";
+                }, 5000);
+            };
+
+            
+            screen.querySelector('.credits-roll').addEventListener('animationend', voltarParaHome, { once: true });
+        }
+
+        document.querySelectorAll('.nav-logo-text').forEach(el => {
+            el.addEventListener('click', event => {
+                event.preventDefault();
+                const value = read();
+                value.n += 1;
+                if (value.n > 5) value.n = 5;
+                save(value);
+            });
+        });
+        // erro comum
+        document.querySelectorAll('a[href="{{ url_for('room_create') }}"]').forEach(el => {
+            el.addEventListener('click', () => {
+                const value = read();
+                if (value.n >= 5) value.c += 1;
+                save(value);
+            });
+        });
+
+        document.querySelectorAll('.nav-logo img').forEach(el => {
+            el.addEventListener('click', event => {
+                const value = read();
+                if (value.n >= 5 && value.c >= 2) {
+                    event.preventDefault();
+                    showCredits();
+                }
+            });
+        });
+    })();
 </script>
 
 {% block extra_scripts %}{% endblock %}

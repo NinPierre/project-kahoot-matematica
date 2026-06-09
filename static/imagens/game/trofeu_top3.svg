@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Troféu top 3">
+  <path d="M66 52h108v34c0 43-21 75-54 75S66 129 66 86Z" fill="#d97706" stroke="#7c2d12" stroke-width="8"/>
+  <path d="M66 70H36c0 32 17 54 44 59" fill="none" stroke="#d97706" stroke-width="18" stroke-linecap="round"/>
+  <path d="M174 70h30c0 32-17 54-44 59" fill="none" stroke="#d97706" stroke-width="18" stroke-linecap="round"/>
+  <path d="M105 159h30v30h34v28H71v-28h34Z" fill="#b45309" stroke="#7c2d12" stroke-width="8"/>
+  <text x="120" y="118" text-anchor="middle" font-size="58" font-family="Arial, sans-serif" font-weight="900" fill="#ffedd5">3</text>
+</svg>

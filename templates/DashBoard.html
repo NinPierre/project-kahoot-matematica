@@ -5,74 +5,362 @@
 {% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-chalkboard-user"></i> Professor</span>{% endblock %}
 
 {% block content %}
-<div style="max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:1.5rem;">
+<div style="max-width:980px; margin:0 auto; display:flex; flex-direction:column; gap:1.5rem;">
 
     <div class="animate-in">
         <h1 class="page-heading"><i class="fa-solid fa-gauge-high"></i> Dashboard do Professor</h1>
-        <p class="page-sub">Gerencie perguntas e salas de jogo.</p>
+        <p class="page-sub">Crie perguntas, revise o banco do jogo e abra salas para a turma.</p>
     </div>
 
-    <!-- Adicionar pergunta -->
     <div class="card animate-in delay-1">
-        <h2 class="card-title"><i class="fa-solid fa-circle-plus"></i> Adicionar Pergunta</h2>
-        <form action="#" method="POST" style="display:flex; flex-direction:column; gap:.75rem;">
+        <h2 class="card-title"><i class="fa-solid fa-circle-plus"></i> Criar Pergunta</h2>
+        <form action="{{ url_for('dashboard') }}" method="POST" style="display:flex; flex-direction:column; gap:.9rem;">
             <div class="input-group">
                 <label class="input-label"><i class="fa-solid fa-question"></i> Pergunta</label>
-                <input type="text" name="pergunta" placeholder="Digite a pergunta" class="input">
+                <input type="text" name="pergunta" placeholder="Digite a pergunta" class="input" required>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
                 <div class="input-group">
                     <label class="input-label">Alternativa A</label>
-                    <input type="text" name="alternativa_a" class="input">
+                    <input type="text" name="alternativa_a" class="input" required>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Alternativa B</label>
-                    <input type="text" name="alternativa_b" class="input">
+                    <input type="text" name="alternativa_b" class="input" required>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Alternativa C</label>
-                    <input type="text" name="alternativa_c" class="input">
+                    <input type="text" name="alternativa_c" class="input" required>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Alternativa D</label>
-                    <input type="text" name="alternativa_d" class="input">
+                    <input type="text" name="alternativa_d" class="input" required>
                 </div>
             </div>
-            <div class="input-group">
-                <label class="input-label"><i class="fa-solid fa-check"></i> Resposta Correta (A, B, C ou D)</label>
-                <input type="text" name="resposta_correta" placeholder="Ex: B" class="input">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:.75rem;">
+                <div class="input-group">
+                    <label class="input-label"><i class="fa-solid fa-check"></i> Correta</label>
+                    <select name="resposta_correta" class="input" required>
+                        <option value="A">Alternativa A</option>
+                        <option value="B">Alternativa B</option>
+                        <option value="C">Alternativa C</option>
+                        <option value="D">Alternativa D</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Dificuldade</label>
+                    <select name="dificuldade" class="input">
+                        {% for valor, label in dificuldades.items() %}
+                            <option value="{{ valor }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Série</label>
+                    <select name="serie" class="input">
+                        {% for serie in series %}
+                            <option value="{{ serie }}">{{ serie }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary" style="width:100%; border-radius:10px; padding:.7rem 1rem;">
-                <i class="fa-solid fa-floppy-disk"></i> Salvar Pergunta
+                <i class="fa-solid fa-floppy-disk"></i> Salvar em questoes_criadas.json
             </button>
         </form>
     </div>
 
-    <hr class="divider">
-
-    <!-- Perguntas criadas -->
     <div class="card animate-in delay-2">
-        <h2 class="card-title"><i class="fa-solid fa-list"></i> Perguntas Criadas</h2>
-        <p style="font-size:.88rem;"><i class="fa-solid fa-inbox" style="margin-right:.4rem; opacity:.5;"></i>Nenhuma pergunta cadastrada.</p>
-    </div>
-
-    <hr class="divider">
-
-    <!-- Gerenciamento -->
-    <div class="card animate-in delay-3">
-        <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Gerenciamento</h2>
-        <div style="display:flex; flex-wrap:wrap; gap:.75rem;">
-            <button class="btn btn-outline btn-lg" style="flex:1; min-width:140px;">
-                <i class="fa-solid fa-pen-to-square"></i> Editar Perguntas
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <h2 class="card-title" style="margin:0;"><i class="fa-solid fa-layer-group"></i> Banco de Perguntas</h2>
+            <button class="btn btn-outline" id="alternarBanco" type="button">
+                <i class="fa-solid fa-shuffle"></i>
+                {% if banco_aberto == 'criadas' %}Ver Banco Principal{% else %}Ver Perguntas Criadas{% endif %}
             </button>
-            <button class="btn btn-danger btn-lg" style="flex:1; min-width:140px;">
-                <i class="fa-solid fa-trash"></i> Excluir Perguntas
-            </button>
-            <a href="{{ url_for('room_create') }}" class="btn btn-primary btn-lg" style="flex:1; min-width:140px; justify-content:center;">
-                <i class="fa-solid fa-plus"></i> Criar Sala
-            </a>
+        </div>
+
+        <div id="listaCriadas" class="{% if banco_aberto != 'criadas' %}hidden{% endif %}" style="margin-top:1rem; display:flex; flex-direction:column; gap:.65rem;">
+            {% if perguntas_criadas %}
+                {% for pergunta in pagina_criadas.itens %}
+                    <div class="score-entry" style="gap:.75rem; align-items:flex-start;">
+                        <span class="rank">{{ pagina_criadas.inicio + loop.index0 }}</span>
+                        <span style="flex:1; font-family:'Space Grotesk', sans-serif;">{{ pergunta.pergunta }}</span>
+                        <span class="pts">{{ pergunta.dificuldadeLabel }}</span>
+                    </div>
+                {% endfor %}
+                <div class="pagination-row">
+                    <p class="page-sub">Mostrando {{ pagina_criadas.inicio }} a {{ pagina_criadas.fim }} de {{ pagina_criadas.total }} perguntas criadas.</p>
+                    <div class="pagination-actions">
+                        <a class="btn btn-outline {% if not pagina_criadas.tem_anterior %}disabled-link{% endif %}"
+                           href="{{ url_for('dashboard', banco='criadas', pagina_criadas=pagina_criadas.anterior, pagina_base=pagina_base.pagina) }}">
+                            <i class="fa-solid fa-chevron-left"></i> Anterior
+                        </a>
+                        <span class="info-pill">Página {{ pagina_criadas.pagina }} de {{ pagina_criadas.total_paginas }}</span>
+                        <a class="btn btn-primary {% if not pagina_criadas.tem_proxima %}disabled-link{% endif %}"
+                           href="{{ url_for('dashboard', banco='criadas', pagina_criadas=pagina_criadas.proxima, pagina_base=pagina_base.pagina) }}">
+                            Próxima <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <p style="font-size:.88rem;"><i class="fa-solid fa-inbox" style="margin-right:.4rem; opacity:.5;"></i>Nenhuma pergunta criada ainda.</p>
+            {% endif %}
+        </div>
+
+        <div id="listaBase" class="{% if banco_aberto != 'base' %}hidden{% endif %}" style="margin-top:1rem; display:flex; flex-direction:column; gap:.65rem;">
+            {% if perguntas_base %}
+                {% for pergunta in pagina_base.itens %}
+                    <div class="score-entry" style="gap:.75rem; align-items:flex-start;">
+                        <span class="rank">{{ pagina_base.inicio + loop.index0 }}</span>
+                        <span style="flex:1; font-family:'Space Grotesk', sans-serif;">{{ pergunta.pergunta }}</span>
+                        <span class="pts">{{ pergunta.dificuldadeLabel }}</span>
+                    </div>
+                {% endfor %}
+                <div class="pagination-row">
+                    <p class="page-sub">Mostrando {{ pagina_base.inicio }} a {{ pagina_base.fim }} de {{ pagina_base.total }} perguntas do banco principal.</p>
+                    <div class="pagination-actions">
+                        <a class="btn btn-outline {% if not pagina_base.tem_anterior %}disabled-link{% endif %}"
+                           href="{{ url_for('dashboard', banco='base', pagina_criadas=pagina_criadas.pagina, pagina_base=pagina_base.anterior) }}">
+                            <i class="fa-solid fa-chevron-left"></i> Anterior
+                        </a>
+                        <span class="info-pill">Página {{ pagina_base.pagina }} de {{ pagina_base.total_paginas }}</span>
+                        <a class="btn btn-primary {% if not pagina_base.tem_proxima %}disabled-link{% endif %}"
+                           href="{{ url_for('dashboard', banco='base', pagina_criadas=pagina_criadas.pagina, pagina_base=pagina_base.proxima) }}">
+                            Próxima <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <p style="font-size:.88rem;"><i class="fa-solid fa-inbox" style="margin-right:.4rem; opacity:.5;"></i>Nenhuma pergunta no banco principal.</p>
+            {% endif %}
         </div>
     </div>
 
+    <div class="card animate-in delay-3">
+        <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Gerenciamento</h2>
+        <div style="display:flex; flex-wrap:wrap; gap:.75rem;">
+            <button class="btn btn-outline btn-lg" type="button" onclick="abrirPerguntaModal('editar')" style="flex:1; min-width:160px;">
+                <i class="fa-solid fa-pen-to-square"></i> Editar pergunta
+            </button>
+            <button class="btn btn-danger btn-lg" type="button" onclick="abrirPerguntaModal('excluir')" style="flex:1; min-width:160px;">
+                <i class="fa-solid fa-trash"></i> Excluir pergunta
+            </button>
+            <a href="{{ url_for('room_create') }}" class="btn btn-primary btn-lg" style="flex:1; min-width:160px; justify-content:center;">
+                <i class="fa-solid fa-plus"></i> Criar sala
+            </a>
+        </div>
+    </div>
 </div>
+
+<div class="modal-backdrop" id="modalEditar">
+    <div class="modal-panel">
+        <h2 class="card-title"><i class="fa-solid fa-pen-to-square"></i> Editar pergunta</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:.9rem;">
+            <select class="input" id="filtroEditarFonte">
+                <option value="todas">Todas as fontes</option>
+                <option value="criadas">Criadas no dashboard</option>
+                <option value="base">Banco principal</option>
+            </select>
+            <select class="input" id="filtroEditarDificuldade">
+                <option value="todas">Todas as dificuldades</option>
+                {% for valor, label in dificuldades.items() %}
+                    <option value="{{ valor }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="input-group">
+            <label class="input-label">Pergunta</label>
+            <select class="input" id="selectEditar"></select>
+        </div>
+        <form id="formEditar" method="POST" style="display:flex; flex-direction:column; gap:.75rem; margin-top:1rem;">
+            <input type="text" name="pergunta" class="input" id="editarPergunta" required>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+                <input type="text" name="alternativa_a" class="input" id="editarA" required>
+                <input type="text" name="alternativa_b" class="input" id="editarB" required>
+                <input type="text" name="alternativa_c" class="input" id="editarC" required>
+                <input type="text" name="alternativa_d" class="input" id="editarD" required>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:.75rem;">
+                <select name="resposta_correta" class="input" id="editarCorreta" required>
+                    <option value="A">A correta</option>
+                    <option value="B">B correta</option>
+                    <option value="C">C correta</option>
+                    <option value="D">D correta</option>
+                </select>
+                <select name="dificuldade" class="input" id="editarDificuldade">
+                    {% for valor, label in dificuldades.items() %}
+                        <option value="{{ valor }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="serie" class="input" id="editarSerie">
+                    {% for serie in series %}
+                        <option value="{{ serie }}">{{ serie }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:.75rem; flex-wrap:wrap;">
+                <button class="btn btn-outline" type="button" onclick="fecharModal('modalEditar')">Cancelar</button>
+                <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Salvar edição</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalExcluir">
+    <div class="modal-panel">
+        <h2 class="card-title"><i class="fa-solid fa-trash"></i> Excluir pergunta</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:.9rem;">
+            <select class="input" id="filtroExcluirFonte">
+                <option value="todas">Todas as fontes</option>
+                <option value="criadas">Criadas no dashboard</option>
+                <option value="base">Banco principal</option>
+            </select>
+            <select class="input" id="filtroExcluirDificuldade">
+                <option value="todas">Todas as dificuldades</option>
+                {% for valor, label in dificuldades.items() %}
+                    <option value="{{ valor }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="input-group">
+            <label class="input-label">Pergunta</label>
+            <select class="input" id="selectExcluir"></select>
+        </div>
+        <div class="alert alert-error" style="margin-top:1rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            Confirme com cuidado: a pergunta será removida do JSON escolhido.
+        </div>
+        <form id="formExcluir" method="POST" style="display:flex; justify-content:flex-end; gap:.75rem; flex-wrap:wrap;">
+            <button class="btn btn-outline" type="button" onclick="fecharModal('modalExcluir')">Cancelar</button>
+            <button class="btn btn-danger"><i class="fa-solid fa-trash"></i> Excluir de vez</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .pagination-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .9rem;
+        flex-wrap: wrap;
+        margin-top: .35rem;
+        padding-top: .85rem;
+        border-top: 1px solid rgba(165,243,252,.12);
+    }
+    .pagination-actions {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        flex-wrap: wrap;
+    }
+    .disabled-link {
+        opacity: .45;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+    @media (max-width: 760px) {
+        [style*="grid-template-columns:1fr 1fr"],
+        [style*="grid-template-columns:1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+        .pagination-actions { width: 100%; }
+        .pagination-actions .btn { flex: 1; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // O backend já manda todas as perguntas prontas para os modais.
+    const perguntas = {{ todas_perguntas|tojson }}; //erro comum ta jose!!
+    const editarTemplate = "{{ url_for('editar_pergunta', pergunta_id='__ID__') }}";
+    const excluirTemplate = "{{ url_for('excluir_pergunta', pergunta_id='__ID__') }}";
+    let bancoAberto = "{{ banco_aberto }}";
+
+    function fecharModal(id) {
+        document.getElementById(id).classList.remove('open');
+    }
+
+    function abrirModal(id) {
+        document.getElementById(id).classList.add('open');
+    }
+
+    function escapeHtml(texto) {
+        return String(texto).replace(/[&<>"']/g, caractere => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[caractere]);
+    }
+
+    document.getElementById('alternarBanco').addEventListener('click', () => {
+        bancoAberto = bancoAberto === 'criadas' ? 'base' : 'criadas';
+        document.getElementById('listaCriadas').classList.toggle('hidden', bancoAberto !== 'criadas');
+        document.getElementById('listaBase').classList.toggle('hidden', bancoAberto !== 'base');
+        document.getElementById('alternarBanco').innerHTML = bancoAberto === 'criadas'
+            ? '<i class="fa-solid fa-shuffle"></i> Ver Banco Principal'
+            : '<i class="fa-solid fa-shuffle"></i> Ver Perguntas Criadas';
+    });
+
+    // Filtro simples para o professor
+    function filtrarPerguntas(prefixo, dificuldade) {
+        return perguntas.filter(pergunta => {
+            const fonteOk = prefixo === 'todas' || pergunta.prefixo === prefixo;
+            const dificuldadeOk = dificuldade === 'todas' || pergunta.dificuldade === dificuldade;
+            return fonteOk && dificuldadeOk;
+        });
+    }
+
+    // Recria a lista do modal
+    function preencherSelect(tipo) {
+        const select = document.getElementById(`select${tipo}`);
+        const fonte = document.getElementById(`filtro${tipo}Fonte`).value;
+        const dificuldade = document.getElementById(`filtro${tipo}Dificuldade`).value;
+        const filtradas = filtrarPerguntas(fonte, dificuldade);
+        select.innerHTML = filtradas.map(pergunta => (
+            `<option value="${pergunta.uid}">${escapeHtml(pergunta.pergunta)} · ${escapeHtml(pergunta.fonte)}</option>`
+        )).join('');
+        atualizarFormulario(tipo);
+    }
+
+    function perguntaSelecionada(tipo) {
+        const uid = document.getElementById(`select${tipo}`).value;
+        return perguntas.find(pergunta => pergunta.uid === uid);
+    }
+
+    function letraDaResposta(pergunta) {
+        const indice = pergunta.opcoes.findIndex(opcao => opcao === pergunta.respostaCorreta);
+        return ['A', 'B', 'C', 'D'][Math.max(0, indice)];
+    }
+
+    // Quando escolhe uma pergunta preenche o formulário com os dados atuais dela.
+    function atualizarFormulario(tipo) {
+        const pergunta = perguntaSelecionada(tipo);
+        if (!pergunta) return;
+
+        if (tipo === 'Editar') {
+            document.getElementById('formEditar').action = editarTemplate.replace('__ID__', pergunta.uid);
+            document.getElementById('editarPergunta').value = pergunta.pergunta;
+            document.getElementById('editarA').value = pergunta.opcoes[0] || '';
+            document.getElementById('editarB').value = pergunta.opcoes[1] || '';
+            document.getElementById('editarC').value = pergunta.opcoes[2] || '';
+            document.getElementById('editarD').value = pergunta.opcoes[3] || '';
+            document.getElementById('editarCorreta').value = letraDaResposta(pergunta);
+            document.getElementById('editarDificuldade').value = pergunta.dificuldade;
+            document.getElementById('editarSerie').value = pergunta.serie || 'Geral';
+        } else {
+            document.getElementById('formExcluir').action = excluirTemplate.replace('__ID__', pergunta.uid);
+        }
+    }
+
+    function abrirPerguntaModal(acao) {
+        const tipo = acao === 'editar' ? 'Editar' : 'Excluir';
+        preencherSelect(tipo);
+        abrirModal(`modal${tipo}`);
+    }
+
+    ['Editar', 'Excluir'].forEach(tipo => {
+        document.getElementById(`filtro${tipo}Fonte`).addEventListener('change', () => preencherSelect(tipo));
+        document.getElementById(`filtro${tipo}Dificuldade`).addEventListener('change', () => preencherSelect(tipo));
+        document.getElementById(`select${tipo}`).addEventListener('change', () => atualizarFormulario(tipo));
+        preencherSelect(tipo);
+    });
+</script>
 {% endblock %}

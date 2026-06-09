@@ -3,17 +3,19 @@
 {% block title %}Quiztech Matemático — Início{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
-    <!-- Texto -->
-    <div class="text-center lg:text-left animate-in">
-        <h2 class="page-heading mb-4">Competição de Matemática Online</h2>
+    <div class="text-center lg:text-left animate-in home-hero" style="padding-top:1rem;">
+        <h2 class="page-heading mb-4">
+            <span class="home-title-part">Competição de</span>
+            <span class="home-title-part">Matemática</span>
+            <span class="home-title-part">Online</span>
+        </h2>
         <p class="page-sub">
-            Teste seus conhecimentos e descubra quem é o melhor em matemática.
-            Complete questões no menor tempo possível para ganhar mais pontos que os demais competidores.
+            Entre em uma sala, escolha seu personagem e responda mais rápido para subir no placar.
         </p>
         <p class="mt-4 font-semibold" style="color: var(--cyan-bright);">
-            <i class="fa-solid fa-trophy"></i> Os melhores colocados serão premiados.
+            <i class="fa-solid fa-trophy"></i> Melhor copia do karoot do piaui.
         </p>
         <div class="mt-8 flex flex-wrap gap-3 justify-center lg:justify-start">
             <a href="{{ url_for('room_create') }}" class="btn btn-primary btn-lg">
@@ -27,35 +29,168 @@
         </div>
     </div>
 
-    <!-- Card de pesquisa -->
     <div class="card animate-in delay-1">
         <h2 class="card-title"><i class="fa-solid fa-door-open"></i> Salas Disponíveis</h2>
 
-        <div class="input-group mb-4">
-            <label class="input-label"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar sala</label>
-            <input type="text" placeholder="Digite o nome da sala" class="input">
-        </div>
-        <button class="btn btn-primary" style="width:100%; border-radius:10px; padding:.65rem 1rem;">
-            <i class="fa-solid fa-magnifying-glass"></i> Pesquisar
-        </button>
+        <form method="GET" action="{{ url_for('home') }}" style="display:flex; flex-direction:column; gap:.9rem;">
+            <div class="input-group">
+                <label class="input-label"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar sala</label>
+                <input type="text" name="busca" value="{{ filtros.busca }}" placeholder="Digite o nome ou código" class="input">
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.75rem;">
+                <div class="input-group">
+                    <label class="input-label">Dificuldade</label>
+                    <select name="dificuldade" class="input">
+                        {% for valor, label in dificuldades.items() %}
+                            <option value="{{ valor }}" {% if filtros.dificuldade == valor %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Série</label>
+                    <select name="serie" class="input">
+                        <option value="todas" {% if filtros.serie == 'todas' %}selected{% endif %}>Todas</option>
+                        {% for serie in series %}
+                            <option value="{{ serie }}" {% if filtros.serie == serie %}selected{% endif %}>{{ serie }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Máx. jogadores</label>
+                    <select name="max_jogadores" class="input">
+                        <option value="todos" {% if filtros.max_jogadores == 'todos' %}selected{% endif %}>Todos</option>
+                        {% for limite in [4, 8, 12, 20, 40, 100] %}
+                            <option value="{{ limite }}" {% if filtros.max_jogadores|string == limite|string %}selected{% endif %}>Até {{ limite }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%; border-radius:10px; padding:.65rem 1rem;">
+                <i class="fa-solid fa-magnifying-glass"></i> Pesquisar
+            </button>
+        </form>
 
         <hr class="divider">
 
-        <div style="display:flex; flex-direction:column; gap:.5rem; font-size:.85rem;">
-            <div style="display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px solid rgba(165,243,252,.08);">
-                <span><i class="fa-solid fa-fire" style="color:var(--cyan-main); margin-right:.4rem;"></i>Dificuldade</span>
-                <span style="color:var(--cyan-bright)">—</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding:.4rem 0; border-bottom:1px solid rgba(165,243,252,.08);">
-                <span><i class="fa-solid fa-graduation-cap" style="color:var(--cyan-main); margin-right:.4rem;"></i>Série</span>
-                <span style="color:var(--cyan-bright)">—</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; padding:.4rem 0;">
-                <span><i class="fa-solid fa-users" style="color:var(--cyan-main); margin-right:.4rem;"></i>Máx. de jogadores</span>
-                <span style="color:var(--cyan-bright)">—</span>
-            </div>
+        <div id="salasLista" style="display:flex; flex-direction:column; gap:.75rem;">
+            {% if salas_publicas %}
+                {% for sala in salas_publicas %}
+                    <a class="room-card" href="{{ url_for('entrar_sala', codigo=sala.codigo) }}">
+                        <div class="room-card-title">
+                            <span><i class="fa-solid fa-hashtag" style="color:var(--cyan-main);"></i> {{ sala.nome }}</span>
+                            <span class="info-pill">{{ sala.codigo }}</span>
+                        </div>
+                        <div class="room-card-meta">
+                            <div class="meta-box"><span>Dificuldade</span><strong>{{ sala.dificuldadeLabel }}</strong></div>
+                            <div class="meta-box"><span>Série</span><strong>{{ sala.serie }}</strong></div>
+                            <div class="meta-box"><span>Jogadores</span><strong>{{ sala.qtd_jogadores }} / {{ sala.max_jogadores }}</strong></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:.75rem; font-size:.82rem;">
+                            <span style="color:rgba(203,213,225,.74);">
+                                <i class="fa-solid fa-clock"></i> {{ sala.tempo_por_questao }}s por pergunta
+                            </span>
+                            {% if sala.tem_senha %}
+                                <span class="info-pill"><i class="fa-solid fa-lock"></i> Com senha</span>
+                            {% else %}
+                                <span class="info-pill"><i class="fa-solid fa-lock-open"></i> Livre</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div style="text-align:center; padding:1.4rem; border:1px dashed rgba(165,243,252,.18); border-radius:14px;">
+                    <i class="fa-solid fa-inbox" style="font-size:1.7rem; color:var(--cyan-main);"></i>
+                    <p class="page-sub" style="margin-top:.5rem;">Nenhuma sala disponível com esses filtros.</p>
+                    <a href="{{ url_for('room_create') }}" class="btn btn-outline" style="margin-top:.75rem;">
+                        <i class="fa-solid fa-plus"></i> Criar a primeira
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
 
 </div>
+
+<style>
+    .home-title-part { display: inline; }
+    @media (max-width: 720px) {
+        [style*="grid-template-columns:repeat(3"] { grid-template-columns: 1fr !important; }
+        .room-card-meta { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 640px) {
+        .home-hero {
+            max-width: 300px;
+            margin-inline: auto;
+            overflow: hidden;
+        }
+        .home-hero .page-heading,
+        .home-hero .page-sub,
+        .home-hero p {
+            max-width: 100%;
+            margin-inline: auto;
+        }
+        .home-title-part {
+            display: block;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const salasApiUrl = "{{ url_for('api_salas') }}" + window.location.search;
+
+    function escapeHtml(texto) {
+        return String(texto).replace(/[&<>"']/g, caractere => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[caractere]);
+    }
+
+    function renderizarSalaHome(sala) {
+        return `
+            <a class="room-card" href="${sala.entrar_url}">
+                <div class="room-card-title">
+                    <span><i class="fa-solid fa-hashtag" style="color:var(--cyan-main);"></i> ${escapeHtml(sala.nome)}</span>
+                    <span class="info-pill">${escapeHtml(sala.codigo)}</span>
+                </div>
+                <div class="room-card-meta">
+                    <div class="meta-box"><span>Dificuldade</span><strong>${escapeHtml(sala.dificuldadeLabel)}</strong></div>
+                    <div class="meta-box"><span>Série</span><strong>${escapeHtml(sala.serie)}</strong></div>
+                    <div class="meta-box"><span>Jogadores</span><strong>${sala.qtd_jogadores} / ${sala.max_jogadores}</strong></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:.75rem; font-size:.82rem;">
+                    <span style="color:rgba(203,213,225,.74);">
+                        <i class="fa-solid fa-clock"></i> ${sala.tempo_por_questao}s por pergunta
+                    </span>
+                    <span class="info-pill"><i class="fa-solid ${sala.tem_senha ? 'fa-lock' : 'fa-lock-open'}"></i> ${sala.tem_senha ? 'Com senha' : 'Livre'}</span>
+                </div>
+            </a>
+        `;
+    }
+
+    function renderizarVazioHome() {
+        return `
+            <div style="text-align:center; padding:1.4rem; border:1px dashed rgba(165,243,252,.18); border-radius:14px;">
+                <i class="fa-solid fa-inbox" style="font-size:1.7rem; color:var(--cyan-main);"></i>
+                <p class="page-sub" style="margin-top:.5rem;">Nenhuma sala disponível com esses filtros.</p>
+                <a href="{{ url_for('room_create') }}" class="btn btn-outline" style="margin-top:.75rem;">
+                    <i class="fa-solid fa-plus"></i> Criar a primeira
+                </a>
+            </div>
+        `;
+    }
+
+    async function atualizarSalasHome() {
+        const resposta = await fetch(salasApiUrl);
+        if (!resposta.ok) return;
+        const dados = await resposta.json();
+        document.getElementById('salasLista').innerHTML = dados.salas.length
+            ? dados.salas.map(renderizarSalaHome).join('')
+            : renderizarVazioHome();
+    }
+
+    socket.on('salas_atualizadas', atualizarSalasHome);
+</script>
 {% endblock %}

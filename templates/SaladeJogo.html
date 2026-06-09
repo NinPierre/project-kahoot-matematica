@@ -2,144 +2,638 @@
 
 {% block title %}Sala de Jogo — Quiztech Matemático{% endblock %}
 
-{% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-gamepad"></i> Sala</span>{% endblock %}
+{% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-gamepad"></i> Partida</span>{% endblock %}
 
 {% block nav_actions %}
-    <!--serve para abri um modall de confirmaçao-->
-    <a href="javascript:void(0)" onclick="confirmarSaida(homeUrl)" class="btn btn-danger">
-     <i class="fa-solid fa-door-open"></i> Sair da Sala
-</a>
-    {% if 'user' not in session %}
-        <a href="{{ url_for('login') }}" class="btn btn-outline"><i class="fa-solid fa-user"></i> Login</a>
-    {% endif %}
+    <form action="{{ url_for('sair_sala', codigo=resumo.codigo) }}" method="POST" style="display:inline;">
+        <input type="hidden" name="player_token" value="{{ player_token }}">
+        <button class="btn btn-danger"><i class="fa-solid fa-door-open"></i> Sair da Sala</button>
+    </form>
 {% endblock %}
 
 {% block mobile_nav_actions %}
-    <a href="{{ url_for('home') }}" class="btn btn-danger"><i class="fa-solid fa-door-open"></i> Sair da Sala</a>
-    {% if 'user' not in session %}
-        <a href="{{ url_for('login') }}" class="btn btn-outline"><i class="fa-solid fa-user"></i> Login</a>
-    {% endif %}
+    <form action="{{ url_for('sair_sala', codigo=resumo.codigo) }}" method="POST">
+        <input type="hidden" name="player_token" value="{{ player_token }}">
+        <button class="btn btn-danger"><i class="fa-solid fa-door-open"></i> Sair da Sala</button>
+    </form>
 {% endblock %}
 
 {% block content %}
-<h1 class="page-heading mb-6"><i class="fa-solid fa-calculator"></i> Sala de Matemática</h1>
+<div class="game-shell" id="gameShell">
+    <aside class="card placar-card animate-in">
+        <h2 class="card-title"><i class="fa-solid fa-ranking-star"></i> Placar ao vivo</h2>
+        <div id="placarLista" style="display:flex; flex-direction:column; gap:.55rem;"></div>
+    </aside>
 
-<div style="display:grid; grid-template-columns:220px 1fr; gap:1.5rem; align-items:start;">
-
-    <!-- Placar -->
-    <div class="card animate-in" style="position:sticky; top:80px;">
-        <h2 class="card-title"><i class="fa-solid fa-ranking-star"></i> Placar Ao Vivo</h2>
-        <div style="display:flex; flex-direction:column; gap:.5rem;">
-            <div class="score-entry"><span class="rank"><i class="fa-solid fa-medal" style="color:#fbbf24;"></i></span><span>Jogador1</span><span class="pts">150 pts</span></div>
-            <div class="score-entry"><span class="rank"><i class="fa-solid fa-medal" style="color:#94a3b8;"></i></span><span>Jogador2</span><span class="pts">130 pts</span></div>
-            <div class="score-entry"><span class="rank"><i class="fa-solid fa-medal" style="color:#c97f3a;"></i></span><span>Jogador3</span><span class="pts">110 pts</span></div>
-            <div class="score-entry" style="border-color:rgba(165,243,252,.3);"><span class="rank">4</span><span>Você</span><span class="pts">95 pts</span></div>
-        </div>
-    </div>
-
-    <!-- Conteúdo central -->
-    <div style="display:flex; flex-direction:column; gap:1.5rem;">
-
-        <!-- Info da sala -->
-        <div class="card animate-in delay-1">
-            <h2 class="card-title"><i class="fa-solid fa-circle-info"></i> Informações da Sala</h2>
-            <div style="display:flex; flex-wrap:wrap; gap:.5rem; align-items:center;">
-                <span class="info-pill"><i class="fa-solid fa-book-open"></i> Matemática Básica</span>
-                <span class="info-pill"><i class="fa-solid fa-users"></i> 12 / 20 jogadores</span>
-                <span class="timer-badge glow-pulse"><i class="fa-solid fa-clock"></i> 02:30</span>
+    <section style="display:flex; flex-direction:column; gap:1.25rem;">
+        <div class="card animate-in delay-1" id="painelTopoJogo">
+            <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:.75rem;">
+                <div>
+                    <h1 class="card-title" style="margin:0;"><i class="fa-solid fa-bolt"></i> {{ resumo.nome }}</h1>
+                    <p class="page-sub" id="rodadaLabel">Preparando pergunta...</p>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:.5rem; align-items:center;">
+                    <span class="info-pill"><i class="fa-solid fa-users"></i> <span id="jogadoresAtual">{{ resumo.qtd_jogadores }}</span> / {{ resumo.max_jogadores }} jogadores</span>
+                    <span class="timer-badge glow-pulse"><i class="fa-solid fa-clock"></i> <span id="timerTexto">00:00</span></span>
+                </div>
             </div>
         </div>
 
-        <!-- Pergunta -->
-        <div class="card animate-in delay-2">
-            <h2 class="card-title"><i class="fa-solid fa-circle-question"></i> Pergunta Atual</h2>
-            <h3 style="font-size:1.1rem; color:var(--slate-light); margin-bottom:1.25rem;">Quanto é 15 + 17?</h3>
-
-            <form action="#" method="POST" style="display:flex; flex-direction:column; gap:.6rem;">
-                <label class="quiz-option"><input type="radio" name="questao" value="28"> 28</label>
-                <label class="quiz-option"><input type="radio" name="questao" value="32"> 32</label>
-                <label class="quiz-option"><input type="radio" name="questao" value="31"> 31</label>
-                <label class="quiz-option"><input type="radio" name="questao" value="35"> 35</label>
-                <button type="submit" class="btn btn-primary" style="margin-top:.75rem; width:100%; border-radius:10px; padding:.7rem 1rem;">
-                    <i class="fa-solid fa-paper-plane"></i> Responder
-                </button>
-            </form>
+        <div class="card animate-in delay-2" id="painelPergunta">
+            <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:center;">
+                <h2 class="card-title" style="margin:0;"><i class="fa-solid fa-circle-question"></i> Pergunta Atual</h2>
+                <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
+                    <span class="info-pill" id="fontePergunta">Banco local</span>
+                    <span class="info-pill bonus-pill hidden" id="bonusPerguntaPill"><i class="fa-solid fa-bolt"></i> x2</span>
+                </div>
+            </div>
+            <h3 id="textoPergunta" style="font-size:1.35rem; color:#fff; margin:1.2rem 0; line-height:1.45;">Carregando...</h3>
+            <div id="opcoesRespostas" class="answers-grid"></div>
+            <p id="feedbackResposta" class="page-sub" style="margin-top:1rem;"></p>
         </div>
 
+        <div class="card hidden" id="painelResultado">
+            <h2 class="card-title"><i class="fa-solid fa-chart-simple"></i> Resultado da Rodada</h2>
+            <p class="page-sub" id="resultadoResumo"></p>
+            <div id="graficoResultado" class="bar-chart"></div>
+        </div>
+
+        <div class="card hidden" id="painelFinal">
+            <h2 class="card-title"><i class="fa-solid fa-trophy"></i> Pódio Final</h2>
+            <div id="podioFinal" class="podium-grid"></div>
+            <div id="rankingCompleto" style="margin-top:1rem; display:flex; flex-direction:column; gap:.5rem;"></div>
+            {% if is_owner %}
+                <form method="POST" action="{{ url_for('voltar_espera', codigo=resumo.codigo) }}" style="margin-top:1rem;">
+                    <input type="hidden" name="player_token" value="{{ player_token }}">
+                    <button class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-rotate-left"></i> Voltar para sala de espera
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<div id="countdownOverlay" class="countdown-overlay hidden">
+    <img id="countdownImg" src="" alt="Contagem regressiva">
+</div>
+
+<div id="bonusOverlay" class="bonus-overlay hidden">
+    <div class="bonus-card">
+        <div class="bonus-icon"><i class="fa-solid fa-bolt"></i></div>
+        <div class="bonus-x2">x2</div>
+        <p>Rodada bônus x2</p>
     </div>
 </div>
 
 <style>
+    .game-shell {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 1.5rem;
+        align-items: start;
+    }
+    .game-shell.bonus-round #painelTopoJogo,
+    .game-shell.bonus-round #painelPergunta {
+        border-color: rgba(250,204,21,.45);
+        box-shadow: 0 0 34px rgba(250,204,21,.14), inset 0 0 0 1px rgba(250,204,21,.1);
+        animation: lightningPanel 1.45s ease-in-out infinite alternate;
+    }
+    .bonus-pill {
+        border-color: rgba(250,204,21,.45);
+        color: #fef3c7;
+        background: rgba(250,204,21,.12);
+    }
+    .game-shell.final-mode {
+        grid-template-columns: 1fr;
+    }
+    .game-shell.final-mode .placar-card,
+    .game-shell.final-mode #painelTopoJogo,
+    .game-shell.final-mode #painelPergunta,
+    .game-shell.final-mode #painelResultado {
+        display: none !important;
+    }
+    .game-shell.final-mode #painelFinal {
+        min-height: calc(100vh - 150px);
+        display: grid;
+        align-content: center;
+    }
+    .placar-card {
+        position: sticky;
+        top: 88px;
+    }
+    .answers-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .8rem;
+    }
+    .answer-btn {
+        width: 100%;
+        min-height: 74px;
+        border: 1.5px solid rgba(165,243,252,.18);
+        border-radius: 14px;
+        background: rgba(165,243,252,.055);
+        color: #fff;
+        font-weight: 700;
+        text-align: left;
+        padding: 1rem;
+        cursor: pointer;
+        transition: transform .18s, border-color .18s, background .18s;
+    }
+    .answer-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        border-color: rgba(165,243,252,.55);
+        background: rgba(165,243,252,.11);
+    }
+    .answer-btn:disabled {
+        cursor: default;
+        opacity: .82;
+    }
+    .answer-btn.selected {
+        border-color: #fbbf24;
+        box-shadow: 0 0 0 3px rgba(251,191,36,.15);
+    }
+    .answer-btn.correct {
+        border-color: #22c55e;
+        background: linear-gradient(135deg, rgba(34,197,94,.34), rgba(21,128,61,.22));
+        color: #dcfce7;
+    }
+    .answer-btn.wrong {
+        border-color: #ef4444;
+        background: linear-gradient(135deg, rgba(239,68,68,.34), rgba(127,29,29,.22));
+        color: #fee2e2;
+    }
+    .countdown-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        background: rgba(2,6,23,.18);
+    }
+    .countdown-overlay.hidden {
+        display: none !important;
+    }
+    .countdown-overlay img {
+        width: min(280px, 70vw);
+        filter: drop-shadow(0 0 32px rgba(165,243,252,.65));
+    }
+    .bonus-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9997;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        background:
+            radial-gradient(circle at 50% 45%, rgba(250,204,21,.28), transparent 34%),
+            linear-gradient(115deg, transparent 0 38%, rgba(255,255,255,.34) 39%, transparent 43% 100%),
+            rgba(2,6,23,.2);
+        animation: bonusFlash .45s ease both;
+    }
+    .bonus-overlay.hidden {
+        display: none !important;
+    }
+    .bonus-card {
+        width: min(360px, 82vw);
+        border: 1px solid rgba(250,204,21,.48);
+        border-radius: 28px;
+        background: linear-gradient(160deg, rgba(15,23,42,.94), rgba(120,53,15,.72));
+        box-shadow: 0 0 60px rgba(250,204,21,.28), inset 0 0 28px rgba(250,204,21,.12);
+        padding: 2rem 1.4rem;
+        text-align: center;
+        transform: scale(.82) rotate(-2deg);
+        opacity: 0;
+    }
+    .bonus-overlay.show .bonus-card {
+        animation: bonusPop 1.35s cubic-bezier(.18,.9,.25,1.18) both;
+    }
+    .bonus-icon {
+        width: 72px;
+        height: 72px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto .25rem;
+        border-radius: 50%;
+        color: #1e293b;
+        background: linear-gradient(180deg, #fde68a, #f59e0b);
+        font-size: 2rem;
+        box-shadow: 0 0 36px rgba(250,204,21,.55);
+        animation: boltPulse .65s ease-in-out infinite alternate;
+    }
+    .bonus-x2 {
+        font-size: clamp(3.2rem, 13vw, 6.2rem);
+        line-height: 1;
+        font-weight: 1000;
+        letter-spacing: -.08em;
+        color: #fff7ed;
+        text-shadow: 0 0 24px rgba(250,204,21,.7), 0 6px 0 rgba(120,53,15,.45);
+    }
+    .bonus-card p {
+        margin: .4rem 0 0;
+        text-transform: uppercase;
+        letter-spacing: .18em;
+        font-weight: 900;
+        color: #fde68a;
+    }
+    .bar-chart {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+        gap: .85rem;
+        align-items: end;
+        min-height: 250px;
+        padding-top: 1rem;
+    }
+    .bar-item {
+        display: grid;
+        align-items: end;
+        justify-items: center;
+        gap: .55rem;
+        min-height: 230px;
+    }
+    .bar-fill {
+        width: 100%;
+        max-width: 72px;
+        min-height: 28px;
+        border-radius: 10px 10px 4px 4px;
+        background: linear-gradient(180deg, #67e8f9, #2563eb);
+        box-shadow: 0 0 22px rgba(103,232,249,.22);
+        transform-origin: bottom;
+        transform: scaleY(.05);
+        opacity: .35;
+    }
+    .bar-fill.rise {
+        animation: growBar .75s ease both;
+    }
+    @keyframes growBar {
+        from { transform: scaleY(.05); opacity:.35; }
+        to { transform: scaleY(1); opacity:1; }
+    }
+    @keyframes lightningPanel {
+        from { filter: saturate(1); }
+        to { filter: saturate(1.25) brightness(1.06); }
+    }
+    @keyframes bonusFlash {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes bonusPop {
+        0% { opacity: 0; transform: scale(.72) rotate(-6deg) translateY(18px); }
+        18% { opacity: 1; transform: scale(1.08) rotate(2deg) translateY(0); }
+        60% { opacity: 1; transform: scale(1) rotate(0); }
+        100% { opacity: 0; transform: scale(.94) rotate(1deg) translateY(-10px); }
+    }
+    @keyframes boltPulse {
+        from { transform: scale(.95) rotate(-6deg); }
+        to { transform: scale(1.08) rotate(7deg); }
+    }
+    .podium-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .9rem;
+        align-items: end;
+    }
+    .podium-card {
+        text-align: center;
+        border: 1px solid rgba(165,243,252,.16);
+        border-radius: 16px;
+        background: rgba(165,243,252,.055);
+        padding: 1rem;
+        opacity: 0;
+        transform: translateY(20px) scale(.94);
+    }
+    .podium-card.reveal {
+        animation: showPodium .7s ease forwards;
+    }
+    .podium-card.champion {
+        grid-column: 1 / -1;
+        max-width: 360px;
+        width: 100%;
+        justify-self: center;
+        background: linear-gradient(180deg, rgba(250,204,21,.18), rgba(165,243,252,.06));
+        border-color: rgba(250,204,21,.42);
+    }
+    .podium-card img.trophy {
+        width: 82px;
+        height: 82px;
+        object-fit: contain;
+        margin: 0 auto .5rem;
+    }
+    .podium-card img.avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: .35rem auto;
+        border: 2px solid rgba(165,243,252,.4);
+    }
+    @keyframes showPodium {
+        to { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @media (max-width: 900px) {
+        .game-shell { grid-template-columns: 1fr; }
+        .placar-card { position: static; }
+    }
     @media (max-width: 640px) {
-        [style*="grid-template-columns:220px"] { grid-template-columns: 1fr !important; }
+        .answers-grid,
+        .podium-grid { grid-template-columns: 1fr; }
+        .podium-card.champion { grid-column: auto; }
+        .answer-btn { min-height: 66px; padding: .85rem; }
+        .bar-chart { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); min-height: 210px; }
+        .bar-item { min-height: 190px; }
+        .bar-fill { max-width: 56px; }
+        .podium-card img.trophy { width: 68px; height: 68px; }
+    }
+    @media (hover: none) {
+        .answer-btn:hover:not(:disabled) {
+            transform: none;
+        }
     }
 </style>
-<!--js para o modall-->
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
-const homeUrl = "{{ url_for('home') }}";
-function confirmarSaida(url) {
-    const modal = document.createElement("div");
+    const playerToken = "{{ player_token }}";
+    sessionStorage.setItem('quiztech_player_token', playerToken);
+    const codigoSala = "{{ resumo.codigo }}";
+    const estadoUrl = "{{ url_for('api_estado_sala', codigo=resumo.codigo, player_token=player_token) }}";
+    const respostaUrl = "{{ url_for('api_responder', codigo=resumo.codigo, player_token=player_token) }}";
+    const esperaUrl = "{{ url_for('espera_sala', codigo=resumo.codigo, player_token=player_token) }}";
+    // Essas imagens ficam separadas para  trocar depois
+    const countdownAssets = {
+        1: "{{ url_for('static', filename='imagens/game/countdown_1.svg') }}",
+        2: "{{ url_for('static', filename='imagens/game/countdown_2.svg') }}",
+        3: "{{ url_for('static', filename='imagens/game/countdown_3.svg') }}"
+    };
+    const trophyAssets = {
+        1: "{{ url_for('static', filename='imagens/game/trofeu_top1.svg') }}",
+        2: "{{ url_for('static', filename='imagens/game/trofeu_top2.svg') }}",
+        3: "{{ url_for('static', filename='imagens/game/trofeu_top3.svg') }}"
+    };
+    let ultimoNumero = null;
+    let ultimaAssinatura = '';
+    let ultimaAssinaturaResultado = '';
+    let ultimaAssinaturaFinal = '';
+    let ultimoBonusMostrado = '';
+    // Sem isso, uma queda rápida podia fazer o servidor achar que o host saiu.
+    function entrarNoCanalDaSala() {
+        socket.emit('entrar_sala_socket', { codigo: codigoSala, player_token: playerToken });
+    }
+    if (socket.connected) entrarNoCanalDaSala();
+    socket.on('connect', entrarNoCanalDaSala);
 
-    modal.className = "modal";
+    socket.on('sala_excluida', data => {
+        if (data.codigo !== codigoSala) return;
+        const toast = document.createElement('div');
+        toast.className = 'top-toast';
+        toast.innerHTML = `<strong>Sala encerrada</strong><span></span>`;
+        toast.querySelector('span').textContent = data.mensagem || 'A sala foi excluída porque o host saiu.';
+        document.body.appendChild(toast);
+        setTimeout(() => window.location.href = "{{ url_for('home') }}", 3300);
+    });
 
-    modal.innerHTML = `
-        <div style="
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,.6);
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            z-index:9999;">
+    function escapeHtml(texto) {
+        return String(texto).replace(/[&<>"']/g, caractere => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[caractere]);
+    }
 
-            <div style="
-                background:#0f172a;
-                color:white;
-                padding:20px;
-                border-radius:12px;
-                width:90%;
-                max-width:350px;
-                text-align:center;
-                border:1px solid #22d3ee;">
+    function formatarTempo(segundos) {
+        const minutos = Math.floor(segundos / 60).toString().padStart(2, '0');
+        const resto = Math.max(0, segundos % 60).toString().padStart(2, '0');
+        return `${minutos}:${resto}`;
+    }
 
-                <h3 style="margin-bottom:10px;">
-                    Confirmar saída
-                </h3>
-
-                <p style="margin-bottom:15px;">
-                    Tem certeza que deseja sair da sala?
-                </p>
-
-                <div style="display:flex;gap:10px;justify-content:center;">
-                    <button
-                        onclick="window.location.href='${url}'"
-                        style="
-                            background:#dc2626;
-                            color:white;
-                            border:none;
-                            padding:8px 16px;
-                            border-radius:8px;
-                            cursor:pointer;">
-                        Sair
-                    </button>
-
-                    <button
-                        onclick="document.querySelector('.modal').remove()"
-                        style="
-                            background:#475569;
-                            color:white;
-                            border:none;
-                            padding:8px 16px;
-                            border-radius:8px;
-                            cursor:pointer;">
-                        Cancelar
-                    </button>
-                </div>
+    function renderizarPlacar(jogadores) {
+        document.getElementById('placarLista').innerHTML = jogadores.map((jogador, indice) => `
+            <div class="score-entry" style="gap:.55rem;">
+                <span class="rank">${indice + 1}</span>
+                <img class="score-avatar" src="/static/${jogador.avatar}" alt="${escapeHtml(jogador.nome)}">
+                <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(jogador.nome)}</span>
+                <span class="pts">${jogador.pontos} pts</span>
             </div>
-        </div>
-    `;
+        `).join('');
+    }
 
-    document.body.appendChild(modal);
-}
+    // aparece a imagem com animação.
+    function mostrarCountdown(segundos) {
+        const overlay = document.getElementById('countdownOverlay');
+        const img = document.getElementById('countdownImg');
+        if (segundos > 0 && segundos <= 3 && ultimoNumero !== segundos) {
+            ultimoNumero = segundos;
+            img.src = countdownAssets[segundos];
+            img.classList.remove('countdown-pop');
+            void img.offsetWidth;
+            img.classList.add('countdown-pop');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('hidden'), 850);
+        }
+        if (segundos > 3) ultimoNumero = null;
+    }
+
+    // Mostra o efeito x2 uma vez por rodada
+    function atualizarBonusX2(estado, ativo) {
+        const shell = document.getElementById('gameShell');
+        const pill = document.getElementById('bonusPerguntaPill');
+        shell.classList.toggle('bonus-round', ativo);
+        pill.classList.toggle('hidden', !ativo);
+
+        if (!ativo) return;
+
+        const chaveBonus = `rodada-${estado.rodada_atual}`;
+        if (ultimoBonusMostrado === chaveBonus) return;
+        ultimoBonusMostrado = chaveBonus;
+
+        const overlay = document.getElementById('bonusOverlay');
+        overlay.classList.remove('hidden');
+        overlay.classList.remove('show');
+        void overlay.offsetWidth;
+        overlay.classList.add('show');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+            overlay.classList.remove('show');
+        }, 1500);
+    }
+
+    //  trava os botões depois que a pessoa responde.
+    function renderizarPergunta(estado) {
+        document.getElementById('gameShell').classList.remove('final-mode');
+        ultimaAssinaturaResultado = '';
+        ultimaAssinaturaFinal = '';
+        document.getElementById('painelPergunta').classList.remove('hidden');
+        document.getElementById('painelResultado').classList.add('hidden');
+        document.getElementById('painelFinal').classList.add('hidden');
+        document.getElementById('rodadaLabel').textContent = `Rodada ${estado.rodada_atual} de ${estado.total_rodadas}`;
+        document.getElementById('timerTexto').textContent = formatarTempo(estado.tempo_restante);
+        document.getElementById('fontePergunta').textContent = `${estado.pergunta.fonte} · ${estado.pergunta.dificuldadeLabel || 'Média'}`;
+        document.getElementById('textoPergunta').textContent = estado.pergunta.texto;
+        document.getElementById('feedbackResposta').textContent = estado.respondi
+            ? 'Resposta enviada. Agora espere todo mundo responder ou o tempo acabar.'
+            : '';
+        atualizarBonusX2(estado, Boolean(estado.pergunta.bonus_x2));
+        mostrarCountdown(estado.tempo_restante);
+
+        const assinatura = JSON.stringify([estado.rodada_atual, estado.respondi, estado.minha_resposta, estado.pergunta.opcoes]);
+        if (assinatura === ultimaAssinatura) return;
+        ultimaAssinatura = assinatura;
+
+        document.getElementById('opcoesRespostas').innerHTML = estado.pergunta.opcoes.map(opcao => `
+            <button class="answer-btn ${estado.minha_resposta === opcao ? 'selected' : ''}" ${estado.respondi ? 'disabled' : ''} data-resposta="${escapeHtml(opcao)}">
+                ${escapeHtml(opcao)}
+            </button>
+        `).join('');
+
+        document.querySelectorAll('.answer-btn').forEach(botao => {
+            botao.addEventListener('click', () => enviarResposta(botao.dataset.resposta));
+        });
+    }
+
+    // Mostra verde na correta, vermelho na errada escolhida e monta o gráfico.
+    function renderizarResultado(estado) {
+        const resultado = estado.resultado;
+        document.getElementById('gameShell').classList.remove('final-mode');
+        document.getElementById('gameShell').classList.remove('bonus-round');
+        document.getElementById('bonusPerguntaPill').classList.toggle('hidden', !resultado.bonus_x2);
+        ultimaAssinaturaFinal = '';
+        document.getElementById('painelPergunta').classList.remove('hidden');
+        document.getElementById('painelResultado').classList.remove('hidden');
+        document.getElementById('painelFinal').classList.add('hidden');
+        document.getElementById('rodadaLabel').textContent = `Resultado da rodada ${estado.rodada_atual}`;
+        document.getElementById('timerTexto').textContent = '00:00';
+        document.getElementById('textoPergunta').textContent = resultado.pergunta;
+        document.getElementById('fontePergunta').textContent = `Respostas encerradas · ${resultado.dificuldadeLabel || 'Média'}`;
+        document.getElementById('feedbackResposta').textContent = estado.meu_delta > 0
+            ? `Você ganhou ${estado.meu_delta} pontos nesta rodada${resultado.bonus_x2 ? ' com bônus x2!' : '.'}`
+            : 'Você não ganhou pontos nesta rodada.';
+
+        const assinaturaResultado = JSON.stringify([
+            estado.rodada_atual,
+            resultado.respostaCorreta,
+            resultado.bonus_x2,
+            estado.minha_resposta,
+            estado.jogadores.map(jogador => [jogador.nome, jogador.pontos, jogador.ultimo_delta])
+        ]);
+        if (assinaturaResultado === ultimaAssinaturaResultado) return;
+        ultimaAssinaturaResultado = assinaturaResultado;
+
+        document.getElementById('opcoesRespostas').innerHTML = resultado.opcoes.map(opcao => {
+            const correta = opcao === resultado.respostaCorreta;
+            const escolhida = opcao === estado.minha_resposta;
+            const classe = correta ? 'correct' : (escolhida ? 'wrong' : '');
+            return `<button class="answer-btn ${classe} ${escolhida ? 'selected' : ''}" disabled>${escapeHtml(opcao)}</button>`;
+        }).join('');
+
+        document.getElementById('resultadoResumo').textContent = `Resposta certa: ${resultado.respostaCorreta}${resultado.bonus_x2 ? ' · Rodada bônus x2 aplicada' : ''}`;
+        // O gráfico sempre vem do maior para o menor ponto, igual placar.
+        const rankingGrafico = [...estado.jogadores].sort((a, b) => b.pontos - a.pontos);
+        const maior = Math.max(...rankingGrafico.map(jogador => jogador.pontos), 1);
+        document.getElementById('graficoResultado').innerHTML = rankingGrafico.map((jogador, indice) => {
+            const altura = Math.max(18, Math.round((jogador.pontos / maior) * 190));
+            const delta = jogador.ultimo_delta > 0 ? `+${jogador.ultimo_delta}` : '0';
+            return `
+                <div class="bar-item">
+                    <div class="bar-fill" style="height:${altura}px;"></div>
+                    <img class="score-avatar" src="/static/${jogador.avatar}" alt="${escapeHtml(jogador.nome)}">
+                    <span class="info-pill">#${indice + 1}</span>
+                    <strong style="color:#fff; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(jogador.nome)}</strong>
+                    <span class="pts">${jogador.pontos} pts · ${delta}</span>
+                </div>
+            `;
+        }).join('');
+
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.bar-fill').forEach(barra => barra.classList.add('rise'));
+        });
+    }
+
+    // O pódio aparece em ordem de suspense: top 3, top 2 e por último top 1.
+    function renderizarFinal(estado) {
+        document.getElementById('gameShell').classList.add('final-mode');
+        document.getElementById('gameShell').classList.remove('bonus-round');
+        document.getElementById('bonusPerguntaPill').classList.add('hidden');
+        document.getElementById('painelPergunta').classList.add('hidden');
+        document.getElementById('painelResultado').classList.add('hidden');
+        document.getElementById('painelFinal').classList.remove('hidden');
+        document.getElementById('rodadaLabel').textContent = 'Partida finalizada';
+        document.getElementById('timerTexto').textContent = '00:00';
+
+        // O estado chega a cada segundo; essa assinatura impede o pódio de reiniciar a animação.
+        const assinaturaFinal = JSON.stringify(estado.ranking_final.map(jogador => [jogador.nome, jogador.pontos]));
+        if (assinaturaFinal === ultimaAssinaturaFinal) return;
+        ultimaAssinaturaFinal = assinaturaFinal;
+
+        const top = estado.top3;
+        const posicoesFinais = [
+            { jogador: top[0], posicao: 1, classe: 'champion' },
+            { jogador: top[1], posicao: 2, classe: '' },
+            { jogador: top[2], posicao: 3, classe: '' }
+        ].filter(item => item.jogador);
+
+        document.getElementById('podioFinal').innerHTML = posicoesFinais.map(item => `
+            <div class="podium-card ${item.classe}" data-posicao="${item.posicao}">
+                <img class="trophy" src="${trophyAssets[item.posicao]}" alt="Troféu top ${item.posicao}">
+                <span class="info-pill">Top ${item.posicao}</span>
+                <img class="avatar" src="/static/${item.jogador.avatar}" alt="${escapeHtml(item.jogador.nome)}">
+                <h3 style="color:#fff; font-size:1.1rem; margin:.25rem 0;">${escapeHtml(item.jogador.nome)}</h3>
+                <p class="pts">${item.jogador.pontos} pontos</p>
+            </div>
+        `).join('');
+
+        // Revela um de cada vez, mas já deixa a posição final preparada.
+        [3, 2, 1]
+            .filter(posicao => document.querySelector(`.podium-card[data-posicao="${posicao}"]`))
+            .forEach((posicao, indice) => {
+            setTimeout(() => {
+                const card = document.querySelector(`.podium-card[data-posicao="${posicao}"]`);
+                if (card) card.classList.add('reveal');
+            }, indice * 900);
+        });
+
+        document.getElementById('rankingCompleto').innerHTML = estado.ranking_final.map((jogador, indice) => `
+            <div class="score-entry">
+                <span class="rank">${indice + 1}</span>
+                <span>${escapeHtml(jogador.nome)}</span>
+                <span class="pts">${jogador.pontos} pts</span>
+            </div>
+        `).join('');
+    }
+
+    async function enviarResposta(resposta) {
+        document.querySelectorAll('.answer-btn').forEach(botao => botao.disabled = true);
+        const retorno = await fetch(respostaUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Player-Token': playerToken },
+            body: JSON.stringify({ resposta })
+        });
+        if (retorno.ok) {
+            renderizarEstado(await retorno.json());
+        }
+    }
+
+    function renderizarEstado(estado) {
+        document.getElementById('jogadoresAtual').textContent = estado.sala.qtd_jogadores;
+        renderizarPlacar(estado.jogadores);
+        if (estado.status === 'espera') {
+            window.location.href = esperaUrl;
+        } else if (estado.status === 'jogando') {
+            renderizarPergunta(estado);
+        } else if (estado.status === 'resultado') {
+            renderizarResultado(estado);
+        } else if (estado.status === 'final') {
+            renderizarFinal(estado);
+        }
+    }
+
+    // Mantém a tela sincronizada com o servidor durante toda a partida.
+    async function buscarEstado() {
+        const resposta = await fetch(estadoUrl, { headers: { 'X-Player-Token': playerToken } });
+        if (!resposta.ok || !resposta.headers.get('content-type')?.includes('application/json')) return;
+        if (resposta.ok) renderizarEstado(await resposta.json());
+    }
+
+    buscarEstado();
+    setInterval(buscarEstado, 1000);
 </script>
 {% endblock %}

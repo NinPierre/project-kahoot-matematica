@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+
+{% block title %}Sala de Espera — Quiztech Matemático{% endblock %}
+
+{% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-hourglass-half"></i> Espera</span>{% endblock %}
+
+{% block nav_actions %}
+    <form action="{{ url_for('sair_sala', codigo=resumo.codigo) }}" method="POST" style="display:inline;">
+        <input type="hidden" name="player_token" value="{{ player_token }}">
+        <button class="btn btn-danger"><i class="fa-solid fa-door-open"></i> Sair</button>
+    </form>
+{% endblock %}
+
+{% block mobile_nav_actions %}
+    <form action="{{ url_for('sair_sala', codigo=resumo.codigo) }}" method="POST">
+        <input type="hidden" name="player_token" value="{{ player_token }}">
+        <button class="btn btn-danger"><i class="fa-solid fa-door-open"></i> Sair</button>
+    </form>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex; flex-direction:column; gap:1.5rem;">
+    <div class="animate-in" style="display:flex; flex-wrap:wrap; justify-content:space-between; gap:1rem; align-items:flex-end;">
+        <div>
+            <h1 class="page-heading"><i class="fa-solid fa-people-group"></i> {{ resumo.nome }}</h1>
+            <p class="page-sub">Código {{ resumo.codigo }} • {{ resumo.dificuldadeLabel }} • {{ resumo.serie }}</p>
+        </div>
+        <div style="display:flex; gap:.6rem; flex-wrap:wrap;">
+            <span class="info-pill"><i class="fa-solid fa-users"></i> <span id="contadorJogadores">{{ resumo.qtd_jogadores }}</span> / {{ resumo.max_jogadores }} jogadores</span>
+            <span class="info-pill"><i class="fa-solid fa-list-ol"></i> {{ resumo.rodadas }} rodadas</span>
+            <span class="info-pill"><i class="fa-solid fa-clock"></i> {{ resumo.tempo_por_questao }}s</span>
+            <span class="info-pill"><i class="fa-solid fa-bolt"></i> x2 {{ resumo.chance_x2 }}%</span>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:minmax(0, 1fr) 360px; gap:1.5rem; align-items:start;">
+        <div class="card animate-in delay-1">
+            <h2 class="card-title"><i class="fa-solid fa-users"></i> Jogadores na espera</h2>
+            <div id="listaJogadores" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:.75rem;">
+                {% for jogador in jogadores %}
+                    <div class="player-chip">
+                        <img src="{{ url_for('static', filename=jogador.avatar) }}" alt="{{ jogador.nome }}">
+                        <div>
+                            <strong style="color:#fff;">{{ jogador.nome }}</strong>
+                            <p style="font-size:.78rem; color:rgba(203,213,225,.65);">Pronto para jogar</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <hr class="divider">
+
+            <div style="display:flex; flex-wrap:wrap; gap:.75rem;">
+                {% if is_owner %}
+                    <form id="formIniciar" method="POST" action="{{ url_for('iniciar_jogo', codigo=resumo.codigo) }}">
+                        <input type="hidden" name="player_token" value="{{ player_token }}">
+                        <button class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-play"></i> Começar
+                        </button>
+                    </form>
+                    <button class="btn btn-outline btn-lg" type="button" onclick="abrirModal('modalConfig')">
+                        <i class="fa-solid fa-sliders"></i> Configurações
+                    </button>
+                {% endif %}
+                <form action="{{ url_for('sair_sala', codigo=resumo.codigo) }}" method="POST">
+                    <input type="hidden" name="player_token" value="{{ player_token }}">
+                    <button class="btn btn-danger btn-lg">
+                        <i class="fa-solid fa-door-open"></i> Sair da sala
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card animate-in delay-2" style="position:sticky; top:88px;">
+            <h2 class="card-title"><i class="fa-solid fa-comments"></i> Chat da sala</h2>
+            <div id="chatMensagens" style="height:320px; overflow:auto; display:flex; flex-direction:column; gap:.65rem; padding-right:.25rem;">
+                {% for mensagem in sala.chat[-40:] %}
+                    <div class="player-chip" style="align-items:flex-start;">
+                        <img src="{{ url_for('static', filename=mensagem.avatar) }}" alt="{{ mensagem.nome }}">
+                        <div>
+                            <strong style="color:#fff;">{{ mensagem.nome }} <span style="font-size:.72rem; color:rgba(203,213,225,.5);">{{ mensagem.hora }}</span></strong>
+                            <p style="font-size:.86rem; color:var(--slate-light); overflow-wrap:anywhere;">{{ mensagem.texto }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <form id="formChat" style="display:flex; gap:.5rem; margin-top:1rem;">
+                <input id="textoChat" class="input" maxlength="240" placeholder="Conversar com a turma">
+                <button class="btn btn-primary" style="border-radius:10px;" aria-label="Enviar mensagem">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalSozinho">
+    <div class="modal-panel">
+        <h2 class="card-title"><i class="fa-solid fa-circle-info"></i> Dá para começar, mas fica melhor com mais gente</h2>
+        <p class="page-sub">Você está com só uma pessoa na sala. A partida funciona assim mesmo, mas costuma ser mais divertida com mais jogadores.</p>
+        <div style="display:flex; gap:.75rem; justify-content:flex-end; margin-top:1.2rem; flex-wrap:wrap;">
+            <button class="btn btn-outline" type="button" onclick="fecharModal('modalSozinho')">Esperar mais</button>
+            <button class="btn btn-primary" type="button" id="confirmarInicio">Continuar mesmo assim</button>
+        </div>
+    </div>
+</div>
+
+{% if is_owner %}
+<div class="modal-backdrop" id="modalConfig">
+    <div class="modal-panel">
+        <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Configurar sala</h2>
+        <form method="POST" action="{{ url_for('configurar_sala', codigo=resumo.codigo) }}" style="display:flex; flex-direction:column; gap:.9rem;">
+            <input type="hidden" name="player_token" value="{{ player_token }}">
+            <div class="input-group">
+                <label class="input-label">Nome da sala</label>
+                <input class="input" name="nome_sala" value="{{ resumo.nome }}" required>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+                <div class="input-group">
+                    <label class="input-label">Dificuldade</label>
+                    <select name="dificuldade" class="input">
+                        {% for valor, label in dificuldades.items() %}
+                            <option value="{{ valor }}" {% if resumo.dificuldade == valor %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Série</label>
+                    <select name="serie" class="input">
+                        {% for serie in series %}
+                            <option value="{{ serie }}" {% if resumo.serie == serie %}selected{% endif %}>{{ serie }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:.75rem;">
+                <div class="input-group">
+                    <label class="input-label">Jogadores</label>
+                    <input class="input" type="number" name="max_jogadores" min="1" max="100" value="{{ resumo.max_jogadores }}" required>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Tempo</label>
+                    <input class="input" type="number" name="tempo_por_questao" min="10" max="300" value="{{ resumo.tempo_por_questao }}" required>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Rodadas</label>
+                    <input class="input" type="number" name="rodadas" min="1" max="30" value="{{ resumo.rodadas }}" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Senha nova ou vazia</label>
+                <input class="input" type="password" name="senha" placeholder="Deixe vazio para remover">
+            </div>
+            <div class="api-options-grid">
+                <label class="api-boost-card">
+                    <input type="checkbox" name="api_frequente" class="api-frequente-toggle" {% if resumo.api_frequente %}checked{% endif %}>
+                    <span>
+                        <strong><i class="fa-solid fa-cloud-arrow-down"></i> Mais perguntas da API</strong>
+                        <small>Ative para a OpenTDB aparecer mais. Desativado mantém o JSON como prioridade.</small>
+                    </span>
+                </label>
+                <label class="api-boost-card api-off-card">
+                    <input type="checkbox" name="api_desativada" class="api-desativada-toggle" {% if resumo.api_desativada %}checked{% endif %}>
+                    <span>
+                        <strong><i class="fa-solid fa-ban"></i> Desativar API</strong>
+                        <small>Use somente as perguntas dos JSONs locais da pasta static.</small>
+                    </span>
+                </label>
+            </div>
+            <div class="bonus-config-card">
+                <div>
+                    <strong><i class="fa-solid fa-bolt"></i> Rodada bônus x2</strong>
+                    <small>Escolha a chance de uma rodada valer o dobro sem recriar a sala.</small>
+                </div>
+                <select name="chance_x2" class="input">
+                    {% for chance in range(0, 101, 5) %}
+                        <option value="{{ chance }}" {% if resumo.chance_x2 == chance %}selected{% endif %}>
+                            {% if chance == 0 %}Desativado{% else %}{{ chance }}% de chance{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:.75rem; flex-wrap:wrap;">
+                <button class="btn btn-outline" type="button" onclick="fecharModal('modalConfig')">Cancelar</button>
+                <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .api-options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .8rem;
+    }
+    .api-boost-card {
+        display: flex;
+        align-items: flex-start;
+        gap: .8rem;
+        border: 1px solid rgba(165,243,252,.18);
+        border-radius: 14px;
+        background: rgba(165,243,252,.055);
+        padding: 1rem;
+        cursor: pointer;
+    }
+    .api-boost-card input {
+        width: 20px;
+        height: 20px;
+        margin-top: .15rem;
+        accent-color: var(--cyan-main);
+        flex-shrink: 0;
+    }
+    .api-boost-card strong { display:block; color:#fff; margin-bottom:.25rem; }
+    .api-boost-card small { display:block; color:var(--slate-body); line-height:1.45; }
+    .api-off-card { border-color: rgba(248,113,113,.24); background: rgba(248,113,113,.055); }
+    .api-off-card input { accent-color:#f87171; }
+    .bonus-config-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 190px;
+        gap: .8rem;
+        align-items: center;
+        border: 1px solid rgba(250,204,21,.24);
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(250,204,21,.09), rgba(165,243,252,.045));
+        padding: 1rem;
+    }
+    .bonus-config-card strong { display:block; color:#fff; margin-bottom:.25rem; }
+    .bonus-config-card small { display:block; color:var(--slate-body); line-height:1.45; }
+    @media (max-width: 900px) {
+        [style*="grid-template-columns:minmax(0, 1fr) 360px"] { grid-template-columns: 1fr !important; }
+        [style*="position:sticky"] { position: static !important; }
+    }
+    @media (max-width: 720px) {
+        [style*="grid-template-columns:1fr 1fr"],
+        [style*="grid-template-columns:repeat(3, 1fr)"],
+        .api-options-grid,
+        .bonus-config-card { grid-template-columns: 1fr !important; }
+        #chatMensagens { height: 260px !important; }
+    }
+    @media (max-width: 430px) {
+        #listaJogadores { grid-template-columns: 1fr !important; }
+        .player-chip { align-items: flex-start; }
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const codigoSala = "{{ resumo.codigo }}";
+    const playerToken = "{{ player_token }}";
+    sessionStorage.setItem('quiztech_player_token', playerToken);
+    const jogoUrl = "{{ url_for('sala_jogo', codigo=resumo.codigo, player_token=player_token) }}";
+    let qtdJogadores = {{ jogadores|length }};
+    let inicioConfirmado = false;
+
+    function abrirModal(id) {
+        document.getElementById(id).classList.add('open');
+    }
+
+    function fecharModal(id) {
+        document.getElementById(id).classList.remove('open');
+    }
+
+    function escapeHtml(texto) {
+        return String(texto).replace(/[&<>"']/g, caractere => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[caractere]);
+    }
+
+    // Atualiza a lista sem recarregar
+    function renderizarJogadores(jogadores) {
+        qtdJogadores = jogadores.length;
+        document.getElementById('contadorJogadores').textContent = qtdJogadores;
+        const lista = document.getElementById('listaJogadores');
+        lista.innerHTML = jogadores.map(jogador => `
+            <div class="player-chip">
+                <img src="/static/${jogador.avatar}" alt="${escapeHtml(jogador.nome)}">
+                <div>
+                    <strong style="color:#fff;">${escapeHtml(jogador.nome)}</strong>
+                    <p style="font-size:.78rem; color:rgba(203,213,225,.65);">Pronto para jogar</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function adicionarMensagem(mensagem) {
+        const chat = document.getElementById('chatMensagens');
+        const item = document.createElement('div');
+        item.className = 'player-chip';
+        item.style.alignItems = 'flex-start';
+        item.innerHTML = `
+            <img src="/static/${mensagem.avatar}" alt="${escapeHtml(mensagem.nome)}">
+            <div>
+                <strong style="color:#fff;">${escapeHtml(mensagem.nome)} <span style="font-size:.72rem; color:rgba(203,213,225,.5);">${escapeHtml(mensagem.hora)}</span></strong>
+                <p style="font-size:.86rem; color:var(--slate-light); overflow-wrap:anywhere;"></p>
+            </div>
+        `;
+        item.querySelector('p').textContent = mensagem.texto;
+        chat.appendChild(item);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function avisarSalaExcluida(mensagem) {
+        const toast = document.createElement('div');
+        toast.className = 'top-toast';
+        toast.innerHTML = `<strong>Sala encerrada</strong><span></span>`;
+        toast.querySelector('span').textContent = mensagem || 'A sala foi excluída porque o host saiu.';
+        document.body.appendChild(toast);
+        setTimeout(() => window.location.href = "{{ url_for('home') }}", 3300);
+    }
+
+
+    // Isso evita apagar a sala 
+    function entrarNoCanalDaSala() {
+        socket.emit('entrar_sala_socket', { codigo: codigoSala, player_token: playerToken });
+    }
+    if (socket.connected) entrarNoCanalDaSala();
+    socket.on('connect', entrarNoCanalDaSala);
+    socket.on('estado_espera', estado => {
+        if (estado.codigo !== codigoSala) return;
+        if (estado.status !== 'espera') {
+            window.location.href = jogoUrl;
+            return;
+        }
+        renderizarJogadores(estado.jogadores);
+    });
+    socket.on('nova_mensagem', adicionarMensagem);
+    socket.on('sala_excluida', data => {
+        if (data.codigo === codigoSala) avisarSalaExcluida(data.mensagem);
+    });
+
+    // O chat fica só na sala atual e guarda as últimas mensagens em memória.
+    document.getElementById('formChat').addEventListener('submit', event => {
+        event.preventDefault();
+        const input = document.getElementById('textoChat');
+        const texto = input.value.trim();
+        if (!texto) return;
+        socket.emit('mensagem_chat', { codigo: codigoSala, texto, player_token: playerToken });
+        input.value = '';
+    });
+
+    const formIniciar = document.getElementById('formIniciar');
+    if (formIniciar) {
+        // O dono pode começar sozinho mas mostramos um aviso antes.
+        formIniciar.addEventListener('submit', event => {
+            if (inicioConfirmado || qtdJogadores >= 2) return;
+            event.preventDefault();
+            abrirModal('modalSozinho');
+        });
+        document.getElementById('confirmarInicio').addEventListener('click', () => {
+            inicioConfirmado = true;
+            formIniciar.submit();
+        });
+    }
+
+    document.querySelectorAll('.api-options-grid').forEach(grupo => {
+        const frequente = grupo.querySelector('.api-frequente-toggle');
+        const desativada = grupo.querySelector('.api-desativada-toggle');
+        desativada.addEventListener('change', () => {
+            if (desativada.checked) frequente.checked = false;
+        });
+        frequente.addEventListener('change', () => {
+            if (frequente.checked) desativada.checked = false;
+        });
+    });
+</script>
+{% endblock %}

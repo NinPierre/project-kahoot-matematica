@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Entrar na Sala — Quiztech Matemático{% endblock %}
+
+{% block nav_badge %}<span class="nav-badge"><i class="fa-solid fa-id-card"></i> Jogador</span>{% endblock %}
+
+{% block content %}
+<div style="max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:1.5rem;">
+    <div class="animate-in">
+        <h1 class="page-heading"><i class="fa-solid fa-door-open"></i> {{ resumo.nome }}</h1>
+        <p class="page-sub">
+            Código {{ resumo.codigo }} • {{ resumo.qtd_jogadores }} / {{ resumo.max_jogadores }} jogadores • {{ resumo.rodadas }} rodadas
+        </p>
+    </div>
+
+    <div class="card animate-in delay-1">
+        <form method="POST" action="{{ url_for('entrar_sala', codigo=resumo.codigo) }}" style="display:flex; flex-direction:column; gap:1.1rem;">
+            <input type="hidden" name="player_token" class="player-token-field" value="{{ player_token }}">
+            {% if precisa_senha %}
+                <div class="input-group">
+                    <label class="input-label"><i class="fa-solid fa-key"></i> Senha da sala</label>
+                    <input type="password" name="senha" placeholder="Digite a senha antes de escolher o personagem" class="input" required>
+                </div>
+            {% endif %}
+
+            <div class="input-group">
+                <label class="input-label"><i class="fa-solid fa-user"></i> Seu nome</label>
+                <input type="text" name="nome_jogador" maxlength="24" placeholder="So nao pode colocar pierre!!!" class="input" required>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label"><i class="fa-solid fa-mask"></i> Escolha seu personagem</label>
+                <div class="avatar-grid">
+                    {% for avatar in avatares %}
+                        <label class="avatar-option" title="Escolher personagem">
+                            <input type="radio" name="avatar" value="{{ avatar }}" {% if avatar == avatar_padrao %}checked{% endif %}>
+                            <img src="{{ url_for('static', filename=avatar) }}" alt="Personagem">
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" style="justify-content:center;">
+                <i class="fa-solid fa-right-to-bracket"></i> Entrar na sala de espera
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function criarTokenDeAba() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    const tokenInicial = "{{ player_token if usar_token_inicial else '' }}";
+    const playerToken = tokenInicial || criarTokenDeAba();
+    sessionStorage.setItem('quiztech_player_token', playerToken);
+    document.querySelectorAll('.player-token-field').forEach(input => input.value = playerToken);
+</script>
+{% endblock %}
