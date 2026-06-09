@@ -108,5 +108,19 @@
   "90": "90",
   "In the complex plane, multiplying a given function by i rotates it anti-clockwise by how many degrees?": "No plano complexo, multiplicar uma determinada função por i gira-a no sentido anti-horário por quantos graus?",
   "In a normal distribution, 95% of the data lies within how many standard deviations of the mean?": "Em uma distribuição normal, 95% dos dados estão dentro de quantos desvios padrão da média?",
-  "To the nearest whole number, how many radians are in a whole circle?": "Para o número inteiro mais próximo, quantos radianos estão em um círculo inteiro?"
+  "To the nearest whole number, how many radians are in a whole circle?": "Para o número inteiro mais próximo, quantos radianos estão em um círculo inteiro?",
+  "Jerk": "Arrancada",
+  "Shift": "Turno",
+  "Bump": "Bump",
+  "Slide": "Peça deslizante",
+  "What is the derivative of Acceleration with respect to time?": "Qual é a derivada da Aceleração em relação ao tempo?",
+  "Normal": "nenhuma",
+  "Hyper-geometric": "Hiper-geométrico",
+  "Binomial": "Binomial",
+  "Poisson": "Poisson",
+  "Which of these probability distributions is NOT discrete?": "Qual dessas distribuições de probabilidade NÃO é discreta?",
+  "40": "40",
+  "60": "60",
+  "15": "15",
+  "In Roman Numerals, what does XL equate to?": "Em algarismos romanos, o que significa XL?"
 }

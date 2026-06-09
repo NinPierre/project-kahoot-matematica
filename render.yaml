@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: quiztech-matematico
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 1 --threads 100 --timeout 120 --bind 0.0.0.0:$PORT main:app
+    healthCheckPath: /healthz
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USER
+        value: tito
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.9

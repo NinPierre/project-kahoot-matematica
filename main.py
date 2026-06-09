@@ -1,6 +1,7 @@
 import html
 import json
 import math
+import os
 import random
 import string
 import time
@@ -22,10 +23,13 @@ from flask import (
 )
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
-
+#essa aplicaçao vai para o render
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "secret!"
-socketio = SocketIO(app)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+if os.environ.get("RENDER"):
+    app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+socketio = SocketIO(app, async_mode="threading")
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -55,7 +59,7 @@ SERIES = [
 ]
 
 USUARIOS = {
-    "tito": "123",
+    os.environ.get("ADMIN_USER", "tito"): os.environ.get("ADMIN_PASSWORD", "123"),
 }
 
 salas = {}
@@ -775,6 +779,11 @@ def home():
     )
 
 
+@app.route("/healthz")
+def healthz():
+    return jsonify({"ok": True})
+
+
 @app.route("/api/salas")
 def api_salas():
     # Endpoint leve usado pela home para mostrar salas novas sem precisar atualizar a página.
@@ -1195,9 +1204,15 @@ def api_responder(codigo):
     if resposta not in pergunta["opcoes"]:
         abort(400)
 
-    posicao = len(sala["respostas"]) + 1
     correta = resposta == pergunta["respostaCorreta"]
-    delta = calcular_pontos(sala, pergunta, correta, posicao)
+    posicao_resposta = len(sala["respostas"]) + 1
+    posicao_acerto = 1 + sum(
+        1 for resposta_anterior in sala["respostas"].values()
+        if resposta_anterior.get("correta")
+    )
+    # A pontuação por velocidade conta a ordem dos acertos.
+    # Assim, quem erra rápido não atrapalha o primeiro que acertou de verdade.
+    delta = calcular_pontos(sala, pergunta, correta, posicao_acerto)
     jogador["pontos"] = max(0, jogador.get("pontos", 0) + delta)
     jogador["ultimo_delta"] = delta
     jogador["respondeu"] = True
@@ -1208,7 +1223,8 @@ def api_responder(codigo):
         "resposta": resposta,
         "correta": correta,
         "delta": delta,
-        "ordem": posicao,
+        "ordem": posicao_resposta,
+        "ordem_acerto": posicao_acerto if correta else None,
         "sem_resposta": False,
     }
 
@@ -1279,4 +1295,12 @@ garantir_arquivos()
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
+    porta = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG") == "1"
+    socketio.run(
+        app,
+        host="0.0.0.0",
+        port=porta,
+        debug=debug,
+        allow_unsafe_werkzeug=True,
+    )
