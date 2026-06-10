@@ -22,7 +22,8 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
                 <div class="input-group">
                     <label class="input-label"><i class="fa-solid fa-fire"></i> Dificuldade</label>
-                    <select name="dificuldade" class="input">
+                    <select name="dificuldade" class="input" required>
+                        <option value="" selected disabled hidden>Escolha a dificuldade</option>
                         {% for valor, label in dificuldades.items() %}
                             <option value="{{ valor }}">{{ label }}</option>
                         {% endfor %}

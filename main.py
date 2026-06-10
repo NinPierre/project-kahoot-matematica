@@ -301,7 +301,34 @@ def traduzir_com_deep_translator(texto):
     return html.unescape(str(traducao or texto).strip())
 
 
-def buscar_perguntas_opentdb(quantidade, dificuldade):
+def chamar_json_url(url, timeout=5):
+    with urlopen(url, timeout=timeout) as resposta:
+        return json.loads(resposta.read().decode("utf-8"))
+
+#para aleatoriza as perguntas da api
+def obter_token_opentdb():
+    url = "https://opentdb.com/api_token.php?command=request"
+    try:
+        payload = chamar_json_url(url, timeout=5)
+    except Exception:
+        return ""
+    return payload.get("token", "") if payload.get("response_code") == 0 else ""
+
+#aqui e para resetar o token da api quando acabar as perguntas
+def resetar_token_opentdb(token):
+    if not token:
+        return False
+    url = "https://opentdb.com/api_token.php?" + urlencode(
+        {"command": "reset", "token": token}
+    )
+    try:
+        payload = chamar_json_url(url, timeout=5)
+    except Exception:
+        return False
+    return payload.get("response_code") == 0
+
+
+def buscar_perguntas_opentdb(quantidade, dificuldade, token_ref=None):
     if quantidade <= 0:
         return []
 
@@ -324,15 +351,36 @@ def buscar_perguntas_opentdb(quantidade, dificuldade):
     }
     if dificuldade_api:
         parametros["difficulty"] = dificuldade_api
+    if token_ref is not None:
+        if not token_ref.get("token"):
+            token_ref["token"] = obter_token_opentdb()
+        if token_ref.get("token"):
+            parametros["token"] = token_ref["token"]
 
-    # api
-    url = "https://opentdb.com/api.php?" + urlencode(parametros)
+    def carregar_payload():
+        url = "https://opentdb.com/api.php?" + urlencode(parametros)
+        return chamar_json_url(url, timeout=5)
 
     try:
-        with urlopen(url, timeout=5) as resposta:
-            payload = json.loads(resposta.read().decode("utf-8"))
+        payload = carregar_payload()
     except Exception:
         return []
+
+    if payload.get("response_code") == 4 and parametros.get("token"):
+        resetar_token_opentdb(parametros["token"])
+        try:
+            payload = carregar_payload()
+        except Exception:
+            return []
+
+    if payload.get("response_code") == 3 and token_ref is not None:
+        token_ref["token"] = obter_token_opentdb()
+        if token_ref.get("token"):
+            parametros["token"] = token_ref["token"]
+            try:
+                payload = carregar_payload()
+            except Exception:
+                return []
 
     if payload.get("response_code") != 0:
         return []
@@ -438,6 +486,7 @@ def sortear_perguntas(
     api_frequente=False,
     api_desativada=False,
     ids_json_usados=None,
+    api_token_ref=None,
 ):
     locais = filtrar_perguntas_locais(
         carregar_todas_perguntas(),
@@ -461,7 +510,11 @@ def sortear_perguntas(
 
     if not api_desativada:
         selecionadas.extend(
-            buscar_perguntas_opentdb(quantidade - len(selecionadas), dificuldade)
+            buscar_perguntas_opentdb(
+                quantidade - len(selecionadas),
+                dificuldade,
+                api_token_ref,
+            )
         )
 
     if len(selecionadas) < quantidade:
@@ -1066,6 +1119,7 @@ def room_create():
             "status": "espera",
             "criada_em": time.time(),
             "questoes_json_usadas": [],
+            "opentdb_token": "",
             "jogadores": {},
             "chat": [],
             "perguntas": [],
@@ -1212,6 +1266,7 @@ def iniciar_jogo(codigo):
     if not eh_dono(sala, token):
         abort(403)
 
+    token_api = {"token": sala.get("opentdb_token", "")}
     perguntas = sortear_perguntas(
         sala["rodadas"],
         sala["dificuldade"],
@@ -1219,7 +1274,9 @@ def iniciar_jogo(codigo):
         sala.get("api_frequente", False),
         sala.get("api_desativada", False),
         sala.setdefault("questoes_json_usadas", []),
+        token_api,
     )
+    sala["opentdb_token"] = token_api.get("token", "")
     perguntas = aplicar_rodadas_bonus_x2(perguntas, sala.get("chance_x2", 10))
     if not perguntas:
         flash("Não encontrei perguntas para iniciar esta sala.", "error")
