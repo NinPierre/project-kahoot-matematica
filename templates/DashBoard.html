@@ -344,7 +344,7 @@
             document.getElementById('editarD').value = pergunta.opcoes[3] || '';
             document.getElementById('editarCorreta').value = letraDaResposta(pergunta);
             document.getElementById('editarDificuldade').value = pergunta.dificuldade;
-            document.getElementById('editarSerie').value = pergunta.serie || 'Geral';
+            document.getElementById('editarSerie').value = pergunta.serie || "{{ series[0] }}";
         } else {
             document.getElementById('formExcluir').action = excluirTemplate.replace('__ID__', pergunta.uid);
         }

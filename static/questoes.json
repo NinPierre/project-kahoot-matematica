@@ -478,5 +478,110 @@
     ],
     "respostaCorreta": "16",
     "dificuldade": "dificil"
+  },
+  {
+    "id": 41,
+    "pergunta": "João tem 5 maçãs e ganha mais 3. Com quantas maçãs ele fica?",
+    "opcoes": ["6", "7", "8", "9"],
+    "respostaCorreta": "8",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 42,
+    "pergunta": "Qual número completa a sequência: 2, 4, 6, 8, ?",
+    "opcoes": ["9", "10", "11", "12"],
+    "respostaCorreta": "10",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 43,
+    "pergunta": "Se um relógio marca 3 horas e se passam 4 horas, que horas serão?",
+    "opcoes": ["6", "7", "8", "9"],
+    "respostaCorreta": "7",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 44,
+    "pergunta": "Qual número é maior que 15 e menor que 17?",
+    "opcoes": ["14", "15", "16", "17"],
+    "respostaCorreta": "16",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 45,
+    "pergunta": "Maria tinha 12 balas e deu 5 para sua amiga. Quantas sobraram?",
+    "opcoes": ["5", "6", "7", "8"],
+    "respostaCorreta": "7",
+    "dificuldade": "facil"
+  },
+  {
+    "id": 46,
+    "pergunta": "Qual número completa a sequência: 5, 10, 15, 20, ?",
+    "opcoes": ["22", "24", "25", "30"],
+    "respostaCorreta": "25",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 47,
+    "pergunta": "Um ônibus transporta 20 passageiros. Entram mais 8 e saem 5. Quantos passageiros ficam no ônibus?",
+    "opcoes": ["21", "22", "23", "24"],
+    "respostaCorreta": "23",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 48,
+    "pergunta": "Qual é o próximo número da sequência: 1, 4, 9, 16, ?",
+    "opcoes": ["20", "24", "25", "36"],
+    "respostaCorreta": "25",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 49,
+    "pergunta": "Se 3 caixas possuem 6 bolas cada, quantas bolas existem ao todo?",
+    "opcoes": ["12", "15", "18", "21"],
+    "respostaCorreta": "18",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 50,
+    "pergunta": "Qual número completa a sequência: 3, 6, 12, 24, ?",
+    "opcoes": ["36", "42", "48", "50"],
+    "respostaCorreta": "48",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 51,
+    "pergunta": "Em uma corrida, Ana está na 5ª posição. Se ela ultrapassar a pessoa que está em 4º lugar, qual posição ela ocupará?",
+    "opcoes": ["3ª", "4ª", "5ª", "6ª"],
+    "respostaCorreta": "4ª",
+    "dificuldade": "medio"
+  },
+  {
+    "id": 52,
+    "pergunta": "Qual é o próximo número da sequência: 2, 6, 12, 20, ?",
+    "opcoes": ["28", "30", "32", "34"],
+    "respostaCorreta": "30",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 53,
+    "pergunta": "Um fazendeiro tem 17 ovelhas. Todas morrem, exceto 9. Quantas ovelhas restam?",
+    "opcoes": ["8", "9", "10", "17"],
+    "respostaCorreta": "9",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 54,
+    "pergunta": "Qual número substitui o ponto de interrogação? 1, 1, 2, 3, 5, 8, ?",
+    "opcoes": ["11", "12", "13", "14"],
+    "respostaCorreta": "13",
+    "dificuldade": "dificil"
+  },
+  {
+    "id": 55,
+    "pergunta": "Se dois pais e dois filhos vão pescar e pegam um peixe cada um, mas voltam com apenas 3 peixes, como isso é possível?",
+    "opcoes": ["Um peixe fugiu", "Eles perderam um peixe", "Eram avô, pai e neto", "Um deles não pescou"],
+    "respostaCorreta": "Eram avô, pai e neto",
+    "dificuldade": "dificil"
   }
 ]

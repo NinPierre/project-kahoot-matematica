@@ -31,7 +31,8 @@
                 <div class="input-group">
                     <label class="input-label"><i class="fa-solid fa-graduation-cap"></i> Série</label>
                     <!-- A série é uma etiqueta da turma -->
-                    <select name="serie" class="input">
+                    <select name="serie" class="input" required>
+                        <option value="" selected disabled hidden>Escolha a série</option>
                         {% for serie in series %}
                             <option value="{{ serie }}">{{ serie }}</option>
                         {% endfor %}

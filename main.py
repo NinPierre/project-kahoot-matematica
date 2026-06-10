@@ -3,13 +3,15 @@ import json
 import math
 import os
 import random
+import re
 import string
 import time
 import uuid
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
-
+# essa blibliote e melhor para traduzir
+from deep_translator import GoogleTranslator
 from flask import (
     Flask,
     abort,
@@ -35,7 +37,6 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 QUESTOES_PATH = STATIC_DIR / "questoes.json"
 QUESTOES_CRIADAS_PATH = STATIC_DIR / "questoes_criadas.json"
-TRADUCOES_API_PATH = STATIC_DIR / "traducoes_api.json"
 PERSONAGENS_DIR = STATIC_DIR / "imagens" / "personagens"
 AVATAR_PADRAO = "imagens/personagens/avatar_padrao.svg"
 SEGUNDOS_RESULTADO = 6
@@ -47,16 +48,26 @@ DIFICULDADES = {
     "medio": "Médio",
     "dificil": "Difícil",
 }
+DIFICULDADES_ESCOLHA = {
+    "facil": "Fácil",
+    "medio": "Médio",
+    "dificil": "Difícil",
+}
 
 # serve para a api.
 SERIES = [
-    "Geral",
+    "1º ano",
+    "2º ano",
+    "3º ano",
+    "4º ano",
+    "5º ano",
     "6º ano",
     "7º ano",
     "8º ano",
     "9º ano",
     "Ensino médio",
 ]
+SERIES_ORDEM = {serie: indice for indice, serie in enumerate(SERIES, start=1)}
 
 USUARIOS = {
     os.environ.get("ADMIN_USER", "tito"): os.environ.get("ADMIN_PASSWORD", "123"),
@@ -64,15 +75,13 @@ USUARIOS = {
 
 salas = {}
 sockets_por_sid = {}
-cache_traducoes = None
+tradutor_api = None
 
 
 def garantir_arquivos():
     QUESTOES_CRIADAS_PATH.parent.mkdir(parents=True, exist_ok=True)
     if not QUESTOES_CRIADAS_PATH.exists():
         QUESTOES_CRIADAS_PATH.write_text("[]\n", encoding="utf-8")
-    if not TRADUCOES_API_PATH.exists():
-        TRADUCOES_API_PATH.write_text("{}\n", encoding="utf-8")
 
 
 def carregar_json(caminho, padrao):
@@ -136,9 +145,83 @@ def normalizar_dificuldade(valor):
         return "dificil"
     return "todas"
 
+#serve para na repeti!!
+def normalizar_dificuldade_escolha(valor):
+    dificuldade = normalizar_dificuldade(valor)
+    return dificuldade if dificuldade in DIFICULDADES_ESCOLHA else "facil"
+
 
 def label_dificuldade(valor):
     return DIFICULDADES.get(normalizar_dificuldade(valor), "Todas")
+
+
+def dificuldades_permitidas(valor):
+    dificuldade = normalizar_dificuldade(valor)
+    if dificuldade == "facil":
+        return {"facil"}
+    if dificuldade == "medio":
+        return {"facil", "medio"}
+    if dificuldade == "dificil":
+        return {"facil", "medio", "dificil"}
+    return {"facil", "medio", "dificil"}
+
+
+def indice_serie(valor):
+    serie = str(valor or "").strip()
+    if serie in SERIES_ORDEM:
+        return SERIES_ORDEM[serie]
+
+    serie_limpa = (
+        serie.lower()
+        .replace("é", "e")
+        .replace("ê", "e")
+        .replace("í", "i")
+    )
+    if "ensino" in serie_limpa and "medio" in serie_limpa:
+        return SERIES_ORDEM["Ensino médio"]
+
+    numero = re.search(r"\d+", serie_limpa)
+    if numero:
+        return max(1, min(SERIES_ORDEM["9º ano"], int(numero.group())))
+
+    return None
+
+
+def normalizar_serie(valor, padrao=None):
+    serie = str(valor or "").strip()
+    if serie in SERIES:
+        return serie
+
+    indice = indice_serie(serie)
+    if indice:
+        return SERIES[indice - 1]
+
+    return padrao or SERIES[0]
+
+#as questoes dos nossos colegas
+def serie_coringa(valor):
+    return not str(valor or "").strip() or str(valor or "").strip() == "Geral"
+
+
+def pergunta_permitida_na_serie(pergunta, serie_sala):
+    serie_pergunta = pergunta.get("serie")
+    if serie_coringa(serie_pergunta):
+        return True
+
+    ordem_sala = indice_serie(normalizar_serie(serie_sala)) or 1
+    ordem_pergunta = indice_serie(serie_pergunta)
+    if ordem_pergunta is None:
+        return True
+    return ordem_pergunta <= ordem_sala
+
+# nao repeti na salas criadas
+def filtrar_perguntas_locais(perguntas, dificuldade, serie):
+    permitidas = dificuldades_permitidas(dificuldade)
+    return [
+        pergunta for pergunta in perguntas
+        if pergunta.get("dificuldade") in permitidas
+        and pergunta_permitida_na_serie(pergunta, serie)
+    ]
 
 
 def normalizar_pergunta(item, fonte, prefixo):
@@ -172,7 +255,7 @@ def normalizar_pergunta(item, fonte, prefixo):
         "respostaCorreta": resposta,
         "dificuldade": normalizar_dificuldade(item.get("dificuldade", "todas")),
         "dificuldadeLabel": label_dificuldade(item.get("dificuldade", "todas")),
-        "serie": item.get("serie", "Geral") or "Geral",
+        "serie": str(item.get("serie") or "Geral").strip() or "Geral",
         "fonte": fonte,
         "prefixo": prefixo,
     }
@@ -199,50 +282,40 @@ def carregar_perguntas_criadas():
 def carregar_todas_perguntas():
     return carregar_perguntas_criadas() + carregar_perguntas_base()
 
-
-def traduzir_texto_api(texto):
-    global cache_traducoes
+#aqui e ap arti da traduçao
+def traduzir_com_deep_translator(texto):
+    global tradutor_api
 
     texto = html.unescape(str(texto or "").strip())
     if not texto:
         return texto
 
-    if cache_traducoes is None:
-        cache_traducoes = carregar_json(TRADUCOES_API_PATH, {})
-
-    if texto in cache_traducoes:
-        return cache_traducoes[texto]
-
-    parametros = {
-        "q": texto[:480],
-        "langpair": "en|pt-BR",
-
-    }      #api
-    url = "https://api.mymemory.translated.net/get?" + urlencode(parametros)
-
     try:
-        with urlopen(url, timeout=6) as resposta:
-            payload = json.loads(resposta.read().decode("utf-8"))
-        traducao = payload.get("responseData", {}).get("translatedText", "").strip()
+        if tradutor_api is None:
+            tradutor_api = GoogleTranslator(source="en", target="pt")
+        traducao = tradutor_api.translate(texto[:450])
     except Exception:
-        traducao = ""
+        # Se o tradutor externo falhar, a pergunta ainda aparece no idioma original.
+        return texto
 
-    # Se o tradutor externo falhar o jogo não quebra
-    traducao = html.unescape(traducao) if traducao else texto
-    cache_traducoes[texto] = traducao
-    salvar_json(TRADUCOES_API_PATH, cache_traducoes)
-    return traducao
+    return html.unescape(str(traducao or texto).strip())
 
 
 def buscar_perguntas_opentdb(quantidade, dificuldade):
     if quantidade <= 0:
         return []
 
-    dificuldade_api = {
+    dificuldades_api = {
         "facil": "easy",
         "medio": "medium",
         "dificil": "hard",
-    }.get(normalizar_dificuldade(dificuldade))
+    }
+    permitidas = [
+        dificuldades_api[item]
+        for item in sorted(dificuldades_permitidas(dificuldade))
+        if item in dificuldades_api
+    ]
+    dificuldade_api = random.choice(permitidas) if permitidas else None
 
     parametros = {
         "amount": min(quantidade, 50),
@@ -270,12 +343,15 @@ def buscar_perguntas_opentdb(quantidade, dificuldade):
         opcoes = [html.unescape(opcao) for opcao in item.get("incorrect_answers", [])]
         opcoes.append(correta)
         random.shuffle(opcoes)
-        traducoes = {texto: traduzir_texto_api(texto) for texto in set(opcoes + [correta])}
+        traducoes = {
+            texto: traduzir_com_deep_translator(texto)
+            for texto in set(opcoes + [correta])
+        }
         perguntas.append(
             {
                 "id": f"api-{int(time.time())}-{indice}",
                 "uid": f"api:{int(time.time())}-{indice}",
-                "pergunta": traduzir_texto_api(item.get("question", "")),
+                "pergunta": traduzir_com_deep_translator(item.get("question", "")),
                 "opcoes": [traducoes[opcao] for opcao in opcoes],
                 "respostaCorreta": traducoes[correta],
                 "dificuldade": normalizar_dificuldade(item.get("difficulty")),
@@ -288,14 +364,50 @@ def buscar_perguntas_opentdb(quantidade, dificuldade):
     return perguntas
 
 
-def priorizar_perguntas_da_serie(perguntas, serie):
-    if not serie or serie == "Geral":
-        return perguntas
+def sincronizar_historico_json(container, historico):
+    if container is None:
+        return
+    if isinstance(container, set):
+        container.clear()
+        container.update(historico)
+        return
+    container[:] = sorted(historico)
 
-    # Primeiro vêm as perguntas cadastradas para a sala
-    preferidas = [q for q in perguntas if q.get("serie") == serie]
-    complemento = [q for q in perguntas if q.get("serie") != serie]
-    return preferidas + complemento
+
+def selecionar_perguntas_json_sem_repetir(
+    perguntas,
+    quantidade,
+    historico,
+    ja_selecionadas=None,
+):
+    selecionadas = []
+    bloqueadas = set(ja_selecionadas or set())
+    historico = set(historico or set())
+
+    while len(selecionadas) < quantidade and perguntas:
+        disponiveis = [
+            pergunta for pergunta in perguntas
+            if pergunta["uid"] not in historico
+            and pergunta["uid"] not in bloqueadas
+        ]
+
+        if not disponiveis:
+            # Quando acaba o ciclo, libera o banco local de novo.
+            historico.clear()
+            disponiveis = [
+                pergunta for pergunta in perguntas
+                if pergunta["uid"] not in bloqueadas
+            ]
+            if not disponiveis:
+                break
+
+        random.shuffle(disponiveis)
+        escolhida = disponiveis[0]
+        selecionadas.append(escolhida)
+        bloqueadas.add(escolhida["uid"])
+        historico.add(escolhida["uid"])
+
+    return selecionadas, historico
 
 #modos
 def calcular_quantidade_api(quantidade, api_frequente=False, api_desativada=False):
@@ -322,22 +434,27 @@ def aplicar_rodadas_bonus_x2(perguntas, chance):
 def sortear_perguntas(
     quantidade,
     dificuldade,
-    serie="Geral",
+    serie=None,
     api_frequente=False,
     api_desativada=False,
+    ids_json_usados=None,
 ):
-    locais = carregar_todas_perguntas()
-    dificuldade = normalizar_dificuldade(dificuldade)
-    if dificuldade != "todas":
-        locais = [q for q in locais if q["dificuldade"] == dificuldade]
+    locais = filtrar_perguntas_locais(
+        carregar_todas_perguntas(),
+        dificuldade,
+        normalizar_serie(serie),
+    )
 
     random.shuffle(locais)
-    locais = priorizar_perguntas_da_serie(locais, serie)
-
 
     qtd_api = calcular_quantidade_api(quantidade, api_frequente, api_desativada)
     qtd_local = max(0, quantidade - qtd_api)
-    selecionadas = locais[:qtd_local]
+    historico_json = set(ids_json_usados or set())
+    selecionadas, historico_json = selecionar_perguntas_json_sem_repetir(
+        locais,
+        qtd_local,
+        historico_json,
+    )
 
     if len(selecionadas) < qtd_local and not api_desativada:
         qtd_api += qtd_local - len(selecionadas)
@@ -348,11 +465,20 @@ def sortear_perguntas(
         )
 
     if len(selecionadas) < quantidade:
-        ids_usados = {q["uid"] for q in selecionadas}
-        extras = [q for q in locais if q["uid"] not in ids_usados]
-        selecionadas.extend(extras[: quantidade - len(selecionadas)])
+        ids_partida = {
+            pergunta["uid"] for pergunta in selecionadas
+            if pergunta.get("prefixo") != "api"
+        }
+        extras, historico_json = selecionar_perguntas_json_sem_repetir(
+            locais,
+            quantidade - len(selecionadas),
+            historico_json,
+            ids_partida,
+        )
+        selecionadas.extend(extras)
 
     random.shuffle(selecionadas)
+    sincronizar_historico_json(ids_json_usados, historico_json)
     return selecionadas[:quantidade]
 
 
@@ -725,8 +851,8 @@ def montar_item_pergunta(formulario, pergunta_id=None):
         "pergunta": formulario.get("pergunta", "").strip(),
         "opcoes": alternativas,
         "respostaCorreta": alternativas[indice_correto],
-        "dificuldade": normalizar_dificuldade(formulario.get("dificuldade")),
-        "serie": formulario.get("serie", "Geral"),
+        "dificuldade": normalizar_dificuldade_escolha(formulario.get("dificuldade")),
+        "serie": normalizar_serie(formulario.get("serie")),
     }
 
 
@@ -774,7 +900,7 @@ def home():
         "home.html",
         salas_publicas=salas_publicas,
         filtros=filtros,
-        dificuldades=DIFICULDADES,
+        dificuldades=DIFICULDADES_ESCOLHA,
         series=SERIES,
     )
 
@@ -856,7 +982,7 @@ def dashboard():
         pagina_base=pagina_base,
         banco_aberto=banco_aberto,
         todas_perguntas=perguntas_criadas + perguntas_base,
-        dificuldades=DIFICULDADES,
+        dificuldades=DIFICULDADES_ESCOLHA,
         series=SERIES,
     )
 
@@ -934,11 +1060,12 @@ def room_create():
             "api_frequente": request.form.get("api_frequente") == "on" and not api_desativada,
             "api_desativada": api_desativada,
             "chance_x2": chance_x2,
-            "dificuldade": normalizar_dificuldade(request.form.get("dificuldade")),
-            "serie": request.form.get("serie", "Geral"),
+            "dificuldade": normalizar_dificuldade_escolha(request.form.get("dificuldade")),
+            "serie": normalizar_serie(request.form.get("serie")),
             "dono_token": token,
             "status": "espera",
             "criada_em": time.time(),
+            "questoes_json_usadas": [],
             "jogadores": {},
             "chat": [],
             "perguntas": [],
@@ -953,7 +1080,7 @@ def room_create():
 
     return render_template(
         "criaçao_de_sala.html",
-        dificuldades=DIFICULDADES,
+        dificuldades=DIFICULDADES_ESCOLHA,
         series=SERIES,
     )
 
@@ -1030,7 +1157,7 @@ def espera_sala(codigo):
         jogadores=jogadores_ordenados(sala),
         is_owner=eh_dono(sala, token),
         player_token=token,
-        dificuldades=DIFICULDADES,
+        dificuldades=DIFICULDADES_ESCOLHA,
         series=SERIES,
     )
 
@@ -1065,8 +1192,8 @@ def configurar_sala(codigo):
 
     sala["nome"] = request.form.get("nome_sala", sala["nome"]).strip() or sala["nome"]
     sala["senha"] = request.form.get("senha", "").strip()
-    sala["dificuldade"] = normalizar_dificuldade(request.form.get("dificuldade"))
-    sala["serie"] = request.form.get("serie", sala["serie"])
+    sala["dificuldade"] = normalizar_dificuldade_escolha(request.form.get("dificuldade"))
+    sala["serie"] = normalizar_serie(request.form.get("serie", sala["serie"]))
     sala["api_desativada"] = request.form.get("api_desativada") == "on"
     sala["api_frequente"] = (
         request.form.get("api_frequente") == "on"
@@ -1091,6 +1218,7 @@ def iniciar_jogo(codigo):
         sala["serie"],
         sala.get("api_frequente", False),
         sala.get("api_desativada", False),
+        sala.setdefault("questoes_json_usadas", []),
     )
     perguntas = aplicar_rodadas_bonus_x2(perguntas, sala.get("chance_x2", 10))
     if not perguntas:
