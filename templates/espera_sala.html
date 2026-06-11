@@ -252,8 +252,11 @@
     const playerToken = "{{ player_token }}";
     sessionStorage.setItem('quiztech_player_token', playerToken);
     const jogoUrl = "{{ url_for('sala_jogo', codigo=resumo.codigo, player_token=player_token) }}";
+    const paginaSaiuUrl = "{{ url_for('api_sala_pagina_saiu', codigo=resumo.codigo, player_token=player_token) }}";
     let qtdJogadores = {{ jogadores|length }};
     let inicioConfirmado = false;
+    let saidaAvisada = false;
+    let navegacaoInterna = false;
 
     function abrirModal(id) {
         document.getElementById(id).classList.add('open');
@@ -312,15 +315,38 @@
     }
 
 
+    // Quando a pessoa troca a URL fecha a aba
+    function avisarSaidaDaPagina() {
+        if (saidaAvisada || navegacaoInterna) return;
+        saidaAvisada = true;
+
+        const corpo = new URLSearchParams({ player_token: playerToken });
+        if (navigator.sendBeacon) {
+            const blob = new Blob([corpo.toString()], { type: 'application/x-www-form-urlencoded' });
+            navigator.sendBeacon(paginaSaiuUrl, blob);
+            return;
+        }
+
+        fetch(paginaSaiuUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: corpo,
+            keepalive: true
+        }).catch(() => {});
+    }
+
     // Isso evita apagar a sala 
     function entrarNoCanalDaSala() {
+        saidaAvisada = false;
         socket.emit('entrar_sala_socket', { codigo: codigoSala, player_token: playerToken });
     }
     if (socket.connected) entrarNoCanalDaSala();
     socket.on('connect', entrarNoCanalDaSala);
+    window.addEventListener('pagehide', avisarSaidaDaPagina);
     socket.on('estado_espera', estado => {
         if (estado.codigo !== codigoSala) return;
         if (estado.status !== 'espera') {
+            navegacaoInterna = true;
             window.location.href = jogoUrl;
             return;
         }
@@ -343,17 +369,27 @@
 
     const formIniciar = document.getElementById('formIniciar');
     if (formIniciar) {
-        // O dono pode começar sozinho mas mostramos um aviso antes.
+        // O dono pode começar sozinho mas mostramos um aviso sus antes.
         formIniciar.addEventListener('submit', event => {
-            if (inicioConfirmado || qtdJogadores >= 2) return;
+            if (inicioConfirmado || qtdJogadores >= 2) {
+                navegacaoInterna = true;
+                return;
+            }
             event.preventDefault();
             abrirModal('modalSozinho');
         });
         document.getElementById('confirmarInicio').addEventListener('click', () => {
             inicioConfirmado = true;
+            navegacaoInterna = true;
             formIniciar.submit();
         });
     }
+
+    document.querySelectorAll('form[action*="/configurar"]').forEach(form => {
+        form.addEventListener('submit', () => {
+            navegacaoInterna = true;
+        });
+    });
 
     document.querySelectorAll('.api-options-grid').forEach(grupo => {
         const frequente = grupo.querySelector('.api-frequente-toggle');

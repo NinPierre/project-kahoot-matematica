@@ -8,6 +8,7 @@ import string
 import time
 import uuid
 from pathlib import Path
+from threading import RLock
 from urllib.parse import urlencode
 from urllib.request import urlopen
 # essa blibliote e melhor para traduzir
@@ -31,7 +32,13 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 if os.environ.get("RENDER"):
     app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-socketio = SocketIO(app, async_mode="threading")
+socketio = SocketIO(
+    app,
+    async_mode="threading",
+    # Heartbeat mais tolerante la ele
+    ping_interval=(25, 10),
+    ping_timeout=35,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -40,7 +47,9 @@ QUESTOES_CRIADAS_PATH = STATIC_DIR / "questoes_criadas.json"
 PERSONAGENS_DIR = STATIC_DIR / "imagens" / "personagens"
 AVATAR_PADRAO = "imagens/personagens/avatar_padrao.svg"
 SEGUNDOS_RESULTADO = 6
-SEGUNDOS_HOST_DESCONECTADO = 18
+SEGUNDOS_HOST_DESCONECTADO = 10
+SEGUNDOS_SOCKET_DESCONECTADO = 28
+SEGUNDOS_JOGADOR_ESPERA_DESCONECTADO = 10
 
 DIFICULDADES = {
     "todas": "Todas",
@@ -76,6 +85,7 @@ USUARIOS = {
 salas = {}
 sockets_por_sid = {}
 tradutor_api = None
+salas_lock = RLock()
 
 
 def garantir_arquivos():
@@ -115,7 +125,7 @@ def token_jogador(token_informado=None):
 
 
 def token_da_requisicao(data=None):
-    # O token pode vir do formulário da URl do header ou do Socket.IO
+    # O token pode vir do formulário da URl do header ou do Socket
     if data and data.get("player_token"):
         return str(data.get("player_token")).strip()
     return (
@@ -440,7 +450,7 @@ def selecionar_perguntas_json_sem_repetir(
         ]
 
         if not disponiveis:
-            # Quando acaba o ciclo, libera o banco local de novo.
+            # Quando acaba o ciclo volta o banco local de novo.
             historico.clear()
             disponiveis = [
                 pergunta for pergunta in perguntas
@@ -456,6 +466,40 @@ def selecionar_perguntas_json_sem_repetir(
         historico.add(escolhida["uid"])
 
     return selecionadas, historico
+
+
+def preparar_pergunta_para_partida(pergunta, posicoes_respostas_usadas=None):
+    preparada = dict(pergunta)
+    resposta = preparada.get("respostaCorreta", "")
+    opcoes = []
+
+    for opcao in preparada.get("opcoes", []):
+        if opcao and opcao not in opcoes:
+            opcoes.append(opcao)
+    if resposta and resposta not in opcoes:
+        opcoes.append(resposta)
+
+    if len(opcoes) > 1:
+        uid = preparada.get("uid")
+        posicao_anterior = None
+        if posicoes_respostas_usadas is not None and uid:
+            posicao_anterior = posicoes_respostas_usadas.get(uid)
+
+        # Embaralha sempre mas nao tem reptiçao na maioria dos casssos  ue eu testei
+        for _ in range(10):
+            random.shuffle(opcoes) 
+            if resposta not in opcoes:
+                break
+            posicao_atual = opcoes.index(resposta)
+            if posicao_anterior is None or posicao_atual != posicao_anterior:
+                break
+
+        if posicoes_respostas_usadas is not None and uid and resposta in opcoes:
+            posicoes_respostas_usadas[uid] = opcoes.index(resposta)
+
+    preparada["opcoes"] = opcoes
+    return preparada
+
 
 #modos
 def calcular_quantidade_api(quantidade, api_frequente=False, api_desativada=False):
@@ -487,6 +531,7 @@ def sortear_perguntas(
     api_desativada=False,
     ids_json_usados=None,
     api_token_ref=None,
+    posicoes_respostas_usadas=None,
 ):
     locais = filtrar_perguntas_locais(
         carregar_todas_perguntas(),
@@ -532,7 +577,10 @@ def sortear_perguntas(
 
     random.shuffle(selecionadas)
     sincronizar_historico_json(ids_json_usados, historico_json)
-    return selecionadas[:quantidade]
+    return [
+        preparar_pergunta_para_partida(pergunta, posicoes_respostas_usadas)
+        for pergunta in selecionadas[:quantidade]
+    ]
 
 
 def listar_avatares():
@@ -577,7 +625,24 @@ def jogador_publico(jogador):
         "pontos": jogador.get("pontos", 0),
         "ultimo_delta": jogador.get("ultimo_delta", 0),
         "respondeu": jogador.get("respondeu", False),
+        "desconectado": bool(jogador.get("desconectado_em")),
     }
+
+
+def quantidade_jogadores_ativos_para_responder(sala):
+    ativos = [
+        jogador for jogador in sala["jogadores"].values()
+        if not jogador.get("desconectado_em")
+    ]
+    return max(1, len(ativos))
+
+
+def quantidade_respostas_de_jogadores_ativos(sala):
+    return sum(
+        1
+        for token in sala["respostas"]
+        if not sala["jogadores"].get(token, {}).get("desconectado_em")
+    )
 
 #cofigs da salinha pesonalizada xtreino
 def resumo_sala(sala):
@@ -656,51 +721,123 @@ def emitir_estado_espera(codigo):
     if sala:
         socketio.emit("estado_espera", estado_espera(sala), to=codigo)
 
-#aqui esxcluir a sala se o dono sair
-def host_tem_socket_ativo(codigo, token):
-    return any(
-        info["codigo"] == codigo and info["token"] == token
-        for info in sockets_por_sid.values()
-    )
+
+
+# essa lista é a fonte para decidir se ela ainda está na sala.
+def participante_tem_socket_ativo(codigo, token):
+    with salas_lock:
+        return any(
+            info["codigo"] == codigo and info["token"] == token
+            for info in sockets_por_sid.values()
+        )
+
+
+def remover_sockets_do_token(codigo, token):
+    with salas_lock:
+        for sid, info in list(sockets_por_sid.items()):
+            if info["codigo"] == codigo and info["token"] == token:
+                sockets_por_sid.pop(sid, None)
 
 
 def excluir_sala_por_host(codigo, motivo=None):
-    sala = salas.get(codigo)
-    if not sala:
-        return False
+    with salas_lock:
+        sala = salas.get(codigo)
+        if not sala:
+            return False
 
 
-    mensagem = motivo or "A sala foi encerrada porque o host saiu."
-    socketio.emit(
-        "sala_excluida",
-        {"codigo": codigo, "mensagem": mensagem},
-        to=codigo,
-    )
-    salas.pop(codigo, None)
-    emitir_salas_atualizadas()
-    return True
+        mensagem = motivo or "A sala foi encerrada porque o host saiu."
+        socketio.emit(
+            "sala_excluida",
+            {"codigo": codigo, "mensagem": mensagem},
+            to=codigo,
+        )
+        salas.pop(codigo, None)
+        emitir_salas_atualizadas()
+        return True
 
 
-def checar_host_desconectado(codigo, token):
-    # Em celular lento isso pode demorar mas to com preguisa de fazer melhor (:
-    socketio.sleep(SEGUNDOS_HOST_DESCONECTADO)
-    sala = salas.get(codigo)
-    if not sala:
-        return
-    if not host_tem_socket_ativo(codigo, token):
+def remover_jogador_da_sala(codigo, token):
+    with salas_lock:
+        sala = salas.get(codigo)
+        if not sala or token not in sala["jogadores"]:
+            return False
+
+        sala["jogadores"].pop(token, None)
+        sala.get("respostas", {}).pop(token, None)
+        emitir_estado_espera(codigo)
+        emitir_salas_atualizadas()
+        return True
+
+
+def marcar_jogador_desconectado(codigo, token):
+    with salas_lock:
+        sala = salas.get(codigo)
+        if not sala or token == sala.get("dono_token"):
+            return
+
+        jogador = sala["jogadores"].get(token)
+        if not jogador:
+            return
+
+        jogador["desconectado_em"] = time.time()
+        jogador["rodada_desconectado"] = sala.get("rodada_atual", 0)
+        emitir_estado_espera(codigo)
+
+
+
+# Se não voltar até a próxima pergunta sai da sala
+def limpar_jogador_reconectado(sala, token):
+    with salas_lock:
+        jogador = sala["jogadores"].get(token)
+        if not jogador:
+            return
+        jogador.pop("desconectado_em", None)
+        jogador.pop("rodada_desconectado", None)
+
+
+def remover_jogadores_desconectados_da_rodada(sala):
+    with salas_lock:
+        codigo = sala["codigo"]
+        removidos = []
+        for token, jogador in list(sala["jogadores"].items()):
+            if token == sala.get("dono_token"):
+                continue
+            if not jogador.get("desconectado_em"):
+                continue
+            if participante_tem_socket_ativo(codigo, token):
+                limpar_jogador_reconectado(sala, token)
+                continue
+            removidos.append(token)
+            sala["jogadores"].pop(token, None)
+            sala.get("respostas", {}).pop(token, None)
+
+        if removidos:
+            emitir_estado_espera(codigo)
+            emitir_salas_atualizadas()
+
+
+def checar_host_desconectado(codigo, token, espera=None):
+    # Da uma folga para refresh 
+    socketio.sleep(SEGUNDOS_HOST_DESCONECTADO if espera is None else espera)
+    with salas_lock:
+        sala = salas.get(codigo)
+        if not sala:
+            return
+        if participante_tem_socket_ativo(codigo, token):
+            return
         if sala.get("dono_token") == token:
             excluir_sala_por_host(
                 codigo,
-                "A sala foi excluída porque o host desconectou.",
+                "A sala foi excluida porque o host desconectou.",
             )
             return
-        if token in sala["jogadores"]:
-            sala["jogadores"].pop(token)
-            if not sala["jogadores"]:
-                salas.pop(codigo, None)
-            else:
-                emitir_estado_espera(codigo)
-            emitir_salas_atualizadas()
+        if token not in sala["jogadores"]:
+            return
+        if sala["status"] == "espera":
+            remover_jogador_da_sala(codigo, token)
+            return
+        marcar_jogador_desconectado(codigo, token)
 
 
 def segundos_restantes(sala):
@@ -792,8 +929,7 @@ def finalizar_rodada(sala):
 
 
 def avancar_estado_automatico(sala):
-    # A tela chama a API todo segundo; aqui o servidor aproveita para trocar
-    # de pergunta ou fechar a partida
+    # A tela chama a API todo segundo aqui o servidor aproveita para trocar
     if sala["status"] == "jogando" and segundos_restantes(sala) <= 0:
         finalizar_rodada(sala)
 
@@ -813,65 +949,72 @@ def avancar_estado_automatico(sala):
     sala["rodada_inicio"] = time.time()
     sala["respostas"] = {}
     sala["resultado"] = {}
+    remover_jogadores_desconectados_da_rodada(sala)
     for jogador in sala["jogadores"].values():
         jogador["respondeu"] = False
         jogador["ultimo_delta"] = 0
 
 
 def estado_jogo(sala):
-    token = token_da_requisicao()
-    avancar_estado_automatico(sala)
+    with salas_lock:
+        token = token_da_requisicao()
+        avancar_estado_automatico(sala)
 
-    # Esse pacote é o que o JavaScript da sala usa para redesenhar a tela.
-    estado = {
-        "sala": resumo_sala(sala),
-        "status": sala["status"],
-        "is_owner": eh_dono(sala, token),
-        "jogadores": [jogador_publico(j) for j in jogadores_ordenados(sala)],
-    }
+        # Esse pacote e o que o JavaScript da sala usa para redesenhar a tela.
+        estado = {
+            "sala": resumo_sala(sala),
+            "status": sala["status"],
+            "is_owner": eh_dono(sala, token),
+            "jogadores": [jogador_publico(j) for j in jogadores_ordenados(sala)],
+        }
 
-    if sala["status"] == "jogando":
-        pergunta = pergunta_atual(sala)
-        estado.update(
-            {
-                "rodada_atual": sala["rodada_atual"] + 1,
-                "total_rodadas": len(sala.get("perguntas", [])),
-                "tempo_restante": segundos_restantes(sala),
-                "pergunta": {
-                    "texto": pergunta["pergunta"],
-                    "opcoes": pergunta["opcoes"],
-                    "fonte": pergunta["fonte"],
-                    "bonus_x2": bool(pergunta.get("bonus_x2")),
-                    "dificuldade": pergunta.get("dificuldade", "medio"),
-                    "dificuldadeLabel": pergunta.get(
-                        "dificuldadeLabel",
-                        label_dificuldade(pergunta.get("dificuldade")),
-                    ),
-                },
-                "respondidas": len(sala["respostas"]),
-                "respondi": token in sala["respostas"],
-                "minha_resposta": sala["respostas"].get(token, {}).get("resposta"),
-            }
-        )
+        if sala["status"] == "jogando":
+            pergunta = pergunta_atual(sala)
+            if not pergunta:
+                sala["status"] = "final"
+                sala["final_inicio"] = time.time()
+                estado["status"] = "final"
+            else:
+                estado.update(
+                    {
+                        "rodada_atual": sala["rodada_atual"] + 1,
+                        "total_rodadas": len(sala.get("perguntas", [])),
+                        "tempo_restante": segundos_restantes(sala),
+                        "pergunta": {
+                            "texto": pergunta["pergunta"],
+                            "opcoes": pergunta["opcoes"],
+                            "fonte": pergunta["fonte"],
+                            "bonus_x2": bool(pergunta.get("bonus_x2")),
+                            "dificuldade": pergunta.get("dificuldade", "medio"),
+                            "dificuldadeLabel": pergunta.get(
+                                "dificuldadeLabel",
+                                label_dificuldade(pergunta.get("dificuldade")),
+                            ),
+                        },
+                        "respondidas": len(sala["respostas"]),
+                        "respondi": token in sala["respostas"],
+                        "minha_resposta": sala["respostas"].get(token, {}).get("resposta"),
+                    }
+                )
 
-    if sala["status"] == "resultado":
-        resposta = sala["respostas"].get(token, {})
-        estado.update(
-            {
-                "rodada_atual": sala["rodada_atual"] + 1,
-                "total_rodadas": len(sala.get("perguntas", [])),
-                "resultado": sala.get("resultado", {}),
-                "minha_resposta": resposta.get("resposta"),
-                "meu_delta": resposta.get("delta", 0),
-            }
-        )
+        if sala["status"] == "resultado":
+            resposta = sala["respostas"].get(token, {})
+            estado.update(
+                {
+                    "rodada_atual": sala["rodada_atual"] + 1,
+                    "total_rodadas": len(sala.get("perguntas", [])),
+                    "resultado": sala.get("resultado", {}),
+                    "minha_resposta": resposta.get("resposta"),
+                    "meu_delta": resposta.get("delta", 0),
+                }
+            )
 
-    if sala["status"] == "final":
-        ranking = [jogador_publico(j) for j in jogadores_ordenados(sala)]
-        estado["ranking_final"] = ranking
-        estado["top3"] = ranking[:3]
+        if sala["status"] == "final":
+            ranking = [jogador_publico(j) for j in jogadores_ordenados(sala)]
+            estado["ranking_final"] = ranking
+            estado["top3"] = ranking[:3]
 
-    return estado
+        return estado
 
 
 def localizar_pergunta(pergunta_id):
@@ -1119,6 +1262,7 @@ def room_create():
             "status": "espera",
             "criada_em": time.time(),
             "questoes_json_usadas": [],
+            "posicoes_respostas_usadas": {},
             "opentdb_token": "",
             "jogadores": {},
             "chat": [],
@@ -1129,7 +1273,6 @@ def room_create():
             "resultado": {},
         }
         emitir_salas_atualizadas()
-        flash("Sala criada. Agora escolha seu nome e personagem.", "success")
         return redirect(url_for("entrar_sala", codigo=codigo, dono="1", player_token=token))
 
     return render_template(
@@ -1275,6 +1418,7 @@ def iniciar_jogo(codigo):
         sala.get("api_desativada", False),
         sala.setdefault("questoes_json_usadas", []),
         token_api,
+        sala.setdefault("posicoes_respostas_usadas", {}),
     )
     sala["opentdb_token"] = token_api.get("token", "")
     perguntas = aplicar_rodadas_bonus_x2(perguntas, sala.get("chance_x2", 10))
@@ -1366,75 +1510,120 @@ def sair_sala(codigo):
 
 @app.route("/api/sala/<codigo>/estado")
 def api_estado_sala(codigo):
-    sala = sala_ou_404(codigo)
+    sala = salas.get(codigo.upper())
+    if not sala:
+        return jsonify({"erro": "sala_nao_encontrada", "redirect": url_for("home")}), 404
     return jsonify(estado_jogo(sala))
 
 
 @app.route("/api/sala/<codigo>/responder", methods=["POST"])
 def api_responder(codigo):
-    sala = sala_ou_404(codigo)
+    with salas_lock:
+        sala = salas.get(codigo.upper())
+        if not sala:
+            return jsonify({"erro": "sala_nao_encontrada", "redirect": url_for("home")}), 404
+        token = token_da_requisicao()
+        jogador = jogador_atual(sala, token)
+        if not jogador:
+            abort(403)
+
+        limpar_jogador_reconectado(sala, token)
+        avancar_estado_automatico(sala)
+        if sala["status"] != "jogando":
+            return jsonify(estado_jogo(sala))
+        if token in sala["respostas"]:
+            return jsonify(estado_jogo(sala))
+
+        pergunta = pergunta_atual(sala)
+        resposta = (request.get_json(silent=True) or {}).get("resposta", "")
+        if not pergunta or resposta not in pergunta["opcoes"]:
+            abort(400)
+
+        correta = resposta == pergunta["respostaCorreta"]
+        posicao_resposta = len(sala["respostas"]) + 1
+        posicao_acerto = 1 + sum(
+            1 for resposta_anterior in sala["respostas"].values()
+            if resposta_anterior.get("correta")
+        )
+        # A pontuacao por velocidade conta a ordem dos acertos.
+        # Assim, quem erra rapido nao atrapalha o primeiro que acertou de verdade.
+        delta = calcular_pontos(sala, pergunta, correta, posicao_acerto)
+        jogador["pontos"] = max(0, jogador.get("pontos", 0) + delta)
+        jogador["ultimo_delta"] = delta
+        jogador["respondeu"] = True
+
+        sala["respostas"][token] = {
+            "nome": jogador["nome"],
+            "avatar": jogador["avatar"],
+            "resposta": resposta,
+            "correta": correta,
+            "delta": delta,
+            "ordem": posicao_resposta,
+            "ordem_acerto": posicao_acerto if correta else None,
+            "sem_resposta": False,
+        }
+
+        if (
+            quantidade_respostas_de_jogadores_ativos(sala)
+            >= quantidade_jogadores_ativos_para_responder(sala)
+        ):
+            finalizar_rodada(sala)
+
+        return jsonify(estado_jogo(sala))
+
+
+#desconectar
+@app.route("/api/sala/<codigo>/pagina-saiu", methods=["POST"])
+def api_sala_pagina_saiu(codigo):
     token = token_da_requisicao()
-    jogador = jogador_atual(sala, token)
-    if not jogador:
-        abort(403)
+    if not token:
+        return ("", 204)
 
-    avancar_estado_automatico(sala)
-    if sala["status"] != "jogando":
-        return jsonify(estado_jogo(sala))
-    if token in sala["respostas"]:
-        return jsonify(estado_jogo(sala))
+    with salas_lock:
+        sala = salas.get(codigo.upper())
+        if not sala:
+            return ("", 204)
+        remover_sockets_do_token(sala["codigo"], token)
+        eh_host = sala.get("dono_token") == token
+        status = sala["status"]
+        codigo_sala = sala["codigo"]
 
-    pergunta = pergunta_atual(sala)
-    resposta = (request.get_json(silent=True) or {}).get("resposta", "")
-    if resposta not in pergunta["opcoes"]:
-        abort(400)
-
-    correta = resposta == pergunta["respostaCorreta"]
-    posicao_resposta = len(sala["respostas"]) + 1
-    posicao_acerto = 1 + sum(
-        1 for resposta_anterior in sala["respostas"].values()
-        if resposta_anterior.get("correta")
-    )
-    # A pontuação por velocidade conta a ordem dos acertos.
-    # Assim, quem erra rápido não atrapalha o primeiro que acertou de verdade.
-    delta = calcular_pontos(sala, pergunta, correta, posicao_acerto)
-    jogador["pontos"] = max(0, jogador.get("pontos", 0) + delta)
-    jogador["ultimo_delta"] = delta
-    jogador["respondeu"] = True
-
-    sala["respostas"][token] = {
-        "nome": jogador["nome"],
-        "avatar": jogador["avatar"],
-        "resposta": resposta,
-        "correta": correta,
-        "delta": delta,
-        "ordem": posicao_resposta,
-        "ordem_acerto": posicao_acerto if correta else None,
-        "sem_resposta": False,
-    }
-
-    if len(sala["respostas"]) >= len(sala["jogadores"]):
-        finalizar_rodada(sala)
-
-    return jsonify(estado_jogo(sala))
+    if eh_host or status == "espera":
+        socketio.start_background_task(
+            checar_host_desconectado,
+            codigo_sala,
+            token,
+            SEGUNDOS_HOST_DESCONECTADO,
+        )
+    else:
+        marcar_jogador_desconectado(codigo_sala, token)
+    return ("", 204)
 
 
 @socketio.on("entrar_sala_socket")
 def socket_entrar_sala(data):
     codigo = str(data.get("codigo", "")).upper()
-    sala = salas.get(codigo)
-    if not sala:
-        return
     token = token_da_requisicao(data)
-    sockets_por_sid[request.sid] = {"codigo": codigo, "token": token}
+    with salas_lock:
+        sala = salas.get(codigo)
+        if not sala or token not in sala["jogadores"]:
+            emit("sala_excluida", {
+                "codigo": codigo,
+                "mensagem": "Sala ou jogador nao encontrado. Volte para a home e entre novamente.",
+            })
+            return
+        sockets_por_sid[request.sid] = {"codigo": codigo, "token": token}
+        limpar_jogador_reconectado(sala, token)
+        estado = estado_espera(sala)
     join_room(codigo)
-    emit("estado_espera", estado_espera(sala))
+    emit("estado_espera", estado)
 
 
 @socketio.on("sair_sala_socket")
 def socket_sair_sala(data):
     codigo = str(data.get("codigo", "")).upper()
-    sockets_por_sid.pop(request.sid, None)
+    with salas_lock:
+        sockets_por_sid.pop(request.sid, None)
     leave_room(codigo)
 
 #chat
@@ -1442,31 +1631,34 @@ def socket_sair_sala(data):
 def socket_mensagem_chat(data):
     codigo = str(data.get("codigo", "")).upper()
     texto = str(data.get("texto", "")).strip()
-    sala = salas.get(codigo)
-    jogador = jogador_atual(sala, token_da_requisicao(data)) if sala else None
-    if not sala or not jogador or not texto:
-        return
+    with salas_lock:
+        sala = salas.get(codigo)
+        jogador = jogador_atual(sala, token_da_requisicao(data)) if sala else None
+        if not sala or not jogador or not texto:
+            return
 
-    mensagem = {
-        "nome": jogador["nome"],
-        "avatar": jogador["avatar"],
-        "texto": texto[:240],
-        "hora": time.strftime("%H:%M"),
-    }
-    sala.setdefault("chat", []).append(mensagem)
-    sala["chat"] = sala["chat"][-50:]
+        mensagem = {
+            "nome": jogador["nome"],
+            "avatar": jogador["avatar"],
+            "texto": texto[:240],
+            "hora": time.strftime("%H:%M"),
+        }
+        sala.setdefault("chat", []).append(mensagem)
+        sala["chat"] = sala["chat"][-50:]
     emit("nova_mensagem", mensagem, to=codigo)
 
 
 @socketio.on("disconnect")
 def socket_desconectou():
-    info = sockets_por_sid.pop(request.sid, None)
+    with salas_lock:
+        info = sockets_por_sid.pop(request.sid, None)
     if not info:
         return
     socketio.start_background_task(
         checar_host_desconectado,
         info["codigo"],
         info["token"],
+        SEGUNDOS_SOCKET_DESCONECTADO,
     )
 
 

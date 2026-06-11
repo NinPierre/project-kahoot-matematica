@@ -52,12 +52,6 @@
             <p id="feedbackResposta" class="page-sub" style="margin-top:1rem;"></p>
         </div>
 
-        <div class="card hidden" id="painelResultado">
-            <h2 class="card-title"><i class="fa-solid fa-chart-simple"></i> Resultado da Rodada</h2>
-            <p class="page-sub" id="resultadoResumo"></p>
-            <div id="graficoResultado" class="bar-chart"></div>
-        </div>
-
         <div class="card hidden" id="painelFinal">
             <h2 class="card-title"><i class="fa-solid fa-trophy"></i> Pódio Final</h2>
             <div id="podioFinal" class="podium-grid"></div>
@@ -86,6 +80,17 @@
     </div>
 </div>
 
+<div id="resultadoOverlay" class="round-result-overlay hidden">
+    <div class="round-result-panel">
+        <div class="round-result-head">
+            <span class="info-pill result-title-pill"><i class="fa-solid fa-chart-simple"></i> Resultado da rodada</span>
+            <h2 id="resultadoTitulo">Rodada</h2>
+            <p id="resultadoResumo" class="page-sub"></p>
+        </div>
+        <div id="graficoResultado" class="round-bars"></div>
+    </div>
+</div>
+
 <style>
     .game-shell {
         display: grid;
@@ -109,8 +114,7 @@
     }
     .game-shell.final-mode .placar-card,
     .game-shell.final-mode #painelTopoJogo,
-    .game-shell.final-mode #painelPergunta,
-    .game-shell.final-mode #painelResultado {
+    .game-shell.final-mode #painelPergunta {
         display: none !important;
     }
     .game-shell.final-mode #painelFinal {
@@ -237,38 +241,220 @@
         font-weight: 900;
         color: #fde68a;
     }
-    .bar-chart {
+    
+    .round-result-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9996;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-        gap: .85rem;
-        align-items: end;
-        min-height: 250px;
-        padding-top: 1rem;
+        place-items: center;
+        padding: clamp(.75rem, 2vw, 1.5rem);
+        background:
+            radial-gradient(circle at 18% 16%, rgba(103,232,249,.25), transparent 30%),
+            radial-gradient(circle at 82% 18%, rgba(250,204,21,.18), transparent 28%),
+            linear-gradient(145deg, rgba(2,6,23,.96), rgba(15,23,42,.93) 46%, rgba(8,47,73,.94));
+        backdrop-filter: blur(18px);
+        animation: resultFade .28s ease both;
+    }
+    .round-result-overlay.hidden {
+        display: none !important;
+    }
+    .round-result-panel {
+        position: relative;
+        width: min(1180px, 100%);
+        max-height: min(88vh, 840px);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 1rem;
+        border: 1px solid rgba(165,243,252,.26);
+        border-radius: 26px;
+        background: rgba(8,18,42,.74);
+        box-shadow: 0 28px 90px rgba(0,0,0,.55), inset 0 0 36px rgba(103,232,249,.06);
+        padding: clamp(1rem, 2.5vw, 1.6rem);
+        overflow: hidden;
+    }
+    .round-result-head {
+        text-align: center;
+        display: grid;
+        justify-items: center;
+        gap: .35rem;
+        padding-top: .65rem;
+    }
+    .result-title-pill {
+        position: absolute;
+        top: .75rem;
+        left: .75rem;
+        font-size: clamp(.58rem, 1.15vw, .7rem);
+        padding: .2rem .52rem;
+        opacity: .86;
+    }
+    .round-result-head h2 {
+        margin: .15rem 0 0;
+        color: #fff;
+        font-size: clamp(1.55rem, 4vw, 3rem);
+        line-height: 1.05;
+        text-shadow: 0 0 28px rgba(103,232,249,.3);
+    }
+    .round-bars {
+        min-height: 270px;
+        overflow: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: clamp(.6rem, 1.5vw, .95rem);
+        align-items: center;
+        padding: .4rem .15rem .2rem;
+        scrollbar-width: thin;
+    }
+    .round-bars.few-players {
+        grid-template-columns: repeat(auto-fit, minmax(145px, 185px));
+        justify-content: center;
+    }
+    .round-bars.many-players {
+        grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+        gap: .55rem;
     }
     .bar-item {
+        min-height: 390px;
         display: grid;
-        align-items: end;
+        grid-template-rows: auto auto minmax(230px, 1fr);
+        align-items: stretch;
         justify-items: center;
         gap: .55rem;
+        border: 1px solid rgba(165,243,252,.12);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(15,23,42,.56), rgba(15,23,42,.28));
+        padding: .72rem .5rem;
+    }
+    .bar-item.top-player {
+        border-color: rgba(250,204,21,.34);
+        box-shadow: 0 0 28px rgba(250,204,21,.12);
+    }
+    .bar-rank {
+        color: #fde68a;
+        border-color: rgba(250,204,21,.35);
+        background: rgba(250,204,21,.1);
+    }
+    .bar-player {
+        width: 100%;
+        display: grid;
+        justify-items: center;
+        gap: .28rem;
+        text-align: center;
+    }
+    .bar-player .score-avatar {
+        width: 54px;
+        height: 54px;
+        border: 2px solid rgba(250,204,21,.5);
+        box-shadow: 0 0 18px rgba(250,204,21,.13);
+    }
+    .bar-points {
+        max-width: 100%;
+        color: #fde68a;
+        font-size: .78rem;
+        font-weight: 800;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .bar-track {
+        width: 100%;
         min-height: 230px;
+        align-self: end;
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        background:
+            linear-gradient(180deg, rgba(165,243,252,.055), transparent 64%),
+            repeating-linear-gradient(180deg, transparent 0 38px, rgba(148,163,184,.08) 39px 40px);
+    }
+    .bar-track::before {
+        content: "";
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        bottom: 3px;
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, #f59e0b, #fde68a, #f59e0b, transparent);
+        box-shadow: 0 0 20px rgba(250,204,21,.45);
+        z-index: 3;
     }
     .bar-fill {
-        width: 100%;
-        max-width: 72px;
-        min-height: 28px;
-        border-radius: 10px 10px 4px 4px;
-        background: linear-gradient(180deg, #67e8f9, #2563eb);
-        box-shadow: 0 0 22px rgba(103,232,249,.22);
+        width: min(72px, 72%);
+        min-height: 0;
+        border-radius: 12px 12px 5px 5px;
+        background: linear-gradient(180deg, #fef08a 0%, #67e8f9 40%, #2563eb 100%);
+        box-shadow: 0 0 26px rgba(103,232,249,.28);
+        position: absolute;
+        bottom: 7px;
+        left: 50%;
         transform-origin: bottom;
-        transform: scaleY(.05);
+        transform: translateX(-50%) scaleY(.04);
         opacity: .35;
+        z-index: 2;
+    }
+    .bar-track.zero-points .bar-fill {
+        display: none;
+    }
+    .zero-mark {
+        display: none;
+        position: absolute;
+        left: 50%;
+        bottom: 2px;
+        width: min(54px, 72%);
+        height: 6px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #f59e0b, #fde68a, #f59e0b);
+        box-shadow: 0 0 22px rgba(250,204,21,.6);
+        transform: translateX(-50%);
+        z-index: 4;
+    }
+    .bar-track.zero-points .zero-mark {
+        display: block;
+        animation: zeroLinePulse 1.15s ease-in-out infinite alternate;
+    }
+    .round-bars.many-players .bar-item {
+        min-height: 330px;
+        grid-template-rows: auto auto minmax(180px, 1fr);
+        padding: .55rem .35rem;
+        border-radius: 14px;
+    }
+    .round-bars.many-players .bar-track {
+        min-height: 180px;
+    }
+    .round-bars.many-players .bar-fill {
+        width: min(50px, 76%);
+    }
+    .round-bars.many-players .bar-player .score-avatar {
+        width: 42px;
+        height: 42px;
     }
     .bar-fill.rise {
-        animation: growBar .75s ease both;
+        animation: growBar 1.85s cubic-bezier(.16,.82,.24,1) both;
+    }
+    .bar-name {
+        color: #fff;
+        max-width: 100%;
+        font-size: .88rem;
+        font-weight: 800;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .round-bars.many-players .bar-name {
+        font-size: .74rem;
     }
     @keyframes growBar {
-        from { transform: scaleY(.05); opacity:.35; }
-        to { transform: scaleY(1); opacity:1; }
+        from { transform: translateX(-50%) scaleY(.05); opacity:.35; }
+        to { transform: translateX(-50%) scaleY(1); opacity:1; }
+    }
+    @keyframes zeroLinePulse {
+        from { opacity: .72; transform: translateX(-50%) scaleX(.82); }
+        to { opacity: 1; transform: translateX(-50%) scaleX(1); }
+    }
+    @keyframes resultFade {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     @keyframes lightningPanel {
         from { filter: saturate(1); }
@@ -334,15 +520,28 @@
     @media (max-width: 900px) {
         .game-shell { grid-template-columns: 1fr; }
         .placar-card { position: static; }
+        .bar-item { min-height: 345px; grid-template-rows: auto auto minmax(190px, 1fr); }
+        .bar-track { min-height: 190px; }
+        .round-bars.many-players .bar-item { min-height: 290px; grid-template-rows: auto auto minmax(145px, 1fr); }
+        .round-bars.many-players .bar-track { min-height: 145px; }
     }
     @media (max-width: 640px) {
         .answers-grid,
         .podium-grid { grid-template-columns: 1fr; }
         .podium-card.champion { grid-column: auto; }
         .answer-btn { min-height: 66px; padding: .85rem; }
-        .bar-chart { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); min-height: 210px; }
-        .bar-item { min-height: 190px; }
-        .bar-fill { max-width: 56px; }
+        .round-result-overlay { padding: .6rem; align-items: stretch; }
+        .round-result-panel { max-height: calc(100vh - 1.2rem); border-radius: 20px; }
+        .round-result-head { padding-top: 1.9rem; }
+        .result-title-pill { top: .6rem; left: .6rem; font-size: .58rem; padding: .18rem .46rem; }
+        .round-bars { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); min-height: 220px; }
+        .round-bars.few-players { grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+        .bar-item { min-height: 285px; grid-template-rows: auto auto minmax(135px, 1fr); padding: .6rem .38rem; }
+        .bar-player .score-avatar { width: 42px; height: 42px; }
+        .bar-track { min-height: 135px; }
+        .round-bars.many-players .bar-item { min-height: 250px; grid-template-rows: auto auto minmax(110px, 1fr); }
+        .round-bars.many-players .bar-track { min-height: 110px; }
+        .bar-fill { width: min(54px, 70%); }
         .podium-card img.trophy { width: 68px; height: 68px; }
     }
     @media (hover: none) {
@@ -361,6 +560,8 @@
     const estadoUrl = "{{ url_for('api_estado_sala', codigo=resumo.codigo, player_token=player_token) }}";
     const respostaUrl = "{{ url_for('api_responder', codigo=resumo.codigo, player_token=player_token) }}";
     const esperaUrl = "{{ url_for('espera_sala', codigo=resumo.codigo, player_token=player_token) }}";
+    const paginaSaiuUrl = "{{ url_for('api_sala_pagina_saiu', codigo=resumo.codigo, player_token=player_token) }}";
+    const somBarraUrl = "{{ url_for('static', filename='sons/barra_subindo.wav') }}";
     // Essas imagens ficam separadas para  trocar depois
     const countdownAssets = {
         1: "{{ url_for('static', filename='imagens/game/countdown_1.svg') }}",
@@ -377,12 +578,39 @@
     let ultimaAssinaturaResultado = '';
     let ultimaAssinaturaFinal = '';
     let ultimoBonusMostrado = '';
-    // Sem isso, uma queda rápida podia fazer o servidor achar que o host saiu.
+    let saidaAvisada = false;
+    let navegacaoInterna = false;
+    let perguntaFocadaNoInicio = false;
+    const somBarra = new Audio(somBarraUrl);
+    somBarra.volume = 0.38;
+    // Avisa quando a pessoa abandona a página
+    function avisarSaidaDaPagina() {
+        if (saidaAvisada || navegacaoInterna) return;
+        saidaAvisada = true;
+
+        const corpo = new URLSearchParams({ player_token: playerToken });
+        if (navigator.sendBeacon) {
+            const blob = new Blob([corpo.toString()], { type: 'application/x-www-form-urlencoded' });
+            navigator.sendBeacon(paginaSaiuUrl, blob);
+            return;
+        }
+
+        fetch(paginaSaiuUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: corpo,
+            keepalive: true
+        }).catch(() => {});
+    }
+
+    // isso e importante
     function entrarNoCanalDaSala() {
+        saidaAvisada = false;
         socket.emit('entrar_sala_socket', { codigo: codigoSala, player_token: playerToken });
     }
     if (socket.connected) entrarNoCanalDaSala();
     socket.on('connect', entrarNoCanalDaSala);
+    window.addEventListener('pagehide', avisarSaidaDaPagina);
 
     socket.on('sala_excluida', data => {
         if (data.codigo !== codigoSala) return;
@@ -406,6 +634,38 @@
         return `${minutos}:${resto}`;
     }
 
+    function tocarSomBarra() {
+        somBarra.pause();
+        somBarra.currentTime = 0;
+        //  bloqueiam som se a pessoa ainda não interagiu com a página.
+        somBarra.play().catch(() => {});
+    }
+
+    async function lerRespostaJsonOuSair(resposta) {
+        const ehJson = resposta.headers.get('content-type')?.includes('application/json');
+        if (!ehJson) {
+            if (!resposta.ok) {
+                navegacaoInterna = true;
+                window.location.href = "{{ url_for('home') }}";
+            }
+            return null;
+        }
+
+        const dados = await resposta.json();
+        if (!resposta.ok || dados.erro === 'sala_nao_encontrada') {
+            const toast = document.createElement('div');
+            toast.className = 'top-toast';
+            toast.innerHTML = `<strong>Sala nao encontrada</strong><span>Voce voltou para a home para entrar de novo.</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                navegacaoInterna = true;
+                window.location.href = dados.redirect || "{{ url_for('home') }}";
+            }, 1800);
+            return null;
+        }
+        return dados;
+    }
+
     function renderizarPlacar(jogadores) {
         document.getElementById('placarLista').innerHTML = jogadores.map((jogador, indice) => `
             <div class="score-entry" style="gap:.55rem;">
@@ -415,6 +675,20 @@
                 <span class="pts">${jogador.pontos} pts</span>
             </div>
         `).join('');
+    }
+
+    // arasta a tela no mobile
+    function focarPerguntaNoInicioMobile() {
+        if (perguntaFocadaNoInicio) return;
+        if (!window.matchMedia('(max-width: 1024px)').matches) return;
+
+        perguntaFocadaNoInicio = true;
+        setTimeout(() => {
+            document.getElementById('painelPergunta')?.scrollIntoView({
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                block: 'center'
+            });
+        }, 250);
     }
 
     // aparece a imagem com animação.
@@ -463,7 +737,7 @@
         ultimaAssinaturaResultado = '';
         ultimaAssinaturaFinal = '';
         document.getElementById('painelPergunta').classList.remove('hidden');
-        document.getElementById('painelResultado').classList.add('hidden');
+        document.getElementById('resultadoOverlay').classList.add('hidden');
         document.getElementById('painelFinal').classList.add('hidden');
         document.getElementById('rodadaLabel').textContent = `Rodada ${estado.rodada_atual} de ${estado.total_rodadas}`;
         document.getElementById('timerTexto').textContent = formatarTempo(estado.tempo_restante);
@@ -488,6 +762,8 @@
         document.querySelectorAll('.answer-btn').forEach(botao => {
             botao.addEventListener('click', () => enviarResposta(botao.dataset.resposta));
         });
+
+        focarPerguntaNoInicioMobile();
     }
 
     // Mostra verde na correta, vermelho na errada escolhida e monta o gráfico.
@@ -498,7 +774,7 @@
         document.getElementById('bonusPerguntaPill').classList.toggle('hidden', !resultado.bonus_x2);
         ultimaAssinaturaFinal = '';
         document.getElementById('painelPergunta').classList.remove('hidden');
-        document.getElementById('painelResultado').classList.remove('hidden');
+        document.getElementById('resultadoOverlay').classList.remove('hidden');
         document.getElementById('painelFinal').classList.add('hidden');
         document.getElementById('rodadaLabel').textContent = `Resultado da rodada ${estado.rodada_atual}`;
         document.getElementById('timerTexto').textContent = '00:00';
@@ -525,41 +801,58 @@
             return `<button class="answer-btn ${classe} ${escolhida ? 'selected' : ''}" disabled>${escapeHtml(opcao)}</button>`;
         }).join('');
 
+        document.getElementById('resultadoTitulo').textContent = `Rodada ${estado.rodada_atual}`;
         document.getElementById('resultadoResumo').textContent = `Resposta certa: ${resultado.respostaCorreta}${resultado.bonus_x2 ? ' · Rodada bônus x2 aplicada' : ''}`;
         // O gráfico sempre vem do maior para o menor ponto, igual placar.
         const rankingGrafico = [...estado.jogadores].sort((a, b) => b.pontos - a.pontos);
-        const maior = Math.max(...rankingGrafico.map(jogador => jogador.pontos), 1);
-        document.getElementById('graficoResultado').innerHTML = rankingGrafico.map((jogador, indice) => {
-            const altura = Math.max(18, Math.round((jogador.pontos / maior) * 190));
+        const maior = Math.max(...rankingGrafico.map(jogador => Math.max(0, Number(jogador.pontos) || 0)), 1);
+        const grafico = document.getElementById('graficoResultado');
+        grafico.classList.toggle('few-players', rankingGrafico.length <= 5);
+        grafico.classList.toggle('many-players', rankingGrafico.length >= 14);
+        grafico.innerHTML = rankingGrafico.map((jogador, indice) => {
+            const telaCelular = window.matchMedia('(max-width: 640px)').matches;
+            const telaTablet = window.matchMedia('(max-width: 900px)').matches;
+            const muitosJogadores = rankingGrafico.length >= 14;
+            const alturaMaxima = muitosJogadores
+                ? (telaCelular ? 95 : telaTablet ? 120 : 150)
+                : (telaCelular ? 125 : telaTablet ? 155 : 205);
+            const pontos = Math.max(0, Number(jogador.pontos) || 0);
+            const altura = pontos > 0 ? Math.max(18, Math.round((pontos / maior) * alturaMaxima)) : 0;
             const delta = jogador.ultimo_delta > 0 ? `+${jogador.ultimo_delta}` : '0';
             return `
-                <div class="bar-item">
-                    <div class="bar-fill" style="height:${altura}px;"></div>
-                    <img class="score-avatar" src="/static/${jogador.avatar}" alt="${escapeHtml(jogador.nome)}">
-                    <span class="info-pill">#${indice + 1}</span>
-                    <strong style="color:#fff; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(jogador.nome)}</strong>
-                    <span class="pts">${jogador.pontos} pts · ${delta}</span>
+                <div class="bar-item ${indice === 0 ? 'top-player' : ''}">
+                    <span class="info-pill bar-rank">#${indice + 1}</span>
+                    <div class="bar-player">
+                        <img class="score-avatar" src="/static/${jogador.avatar}" alt="${escapeHtml(jogador.nome)}">
+                        <strong class="bar-name">${escapeHtml(jogador.nome)}</strong>
+                        <span class="bar-points">${pontos} pts - ${delta}</span>
+                    </div>
+                    <div class="bar-track ${pontos === 0 ? 'zero-points' : ''}">
+                        <div class="bar-fill" style="height:${altura}px;"></div>
+                        <span class="zero-mark"></span>
+                    </div>
                 </div>
             `;
         }).join('');
 
         requestAnimationFrame(() => {
+            tocarSomBarra();
             document.querySelectorAll('.bar-fill').forEach(barra => barra.classList.add('rise'));
         });
     }
 
-    // O pódio aparece em ordem de suspense: top 3, top 2 e por último top 1.
+    // O pódio aparece em ordem 1,2,3
     function renderizarFinal(estado) {
         document.getElementById('gameShell').classList.add('final-mode');
         document.getElementById('gameShell').classList.remove('bonus-round');
         document.getElementById('bonusPerguntaPill').classList.add('hidden');
         document.getElementById('painelPergunta').classList.add('hidden');
-        document.getElementById('painelResultado').classList.add('hidden');
+        document.getElementById('resultadoOverlay').classList.add('hidden');
         document.getElementById('painelFinal').classList.remove('hidden');
         document.getElementById('rodadaLabel').textContent = 'Partida finalizada';
         document.getElementById('timerTexto').textContent = '00:00';
 
-        // O estado chega a cada segundo; essa assinatura impede o pódio de reiniciar a animação.
+        // O estado chega a cada segundo essa assinatura impede o pódio de reiniciar
         const assinaturaFinal = JSON.stringify(estado.ranking_final.map(jogador => [jogador.nome, jogador.pontos]));
         if (assinaturaFinal === ultimaAssinaturaFinal) return;
         ultimaAssinaturaFinal = assinaturaFinal;
@@ -581,7 +874,7 @@
             </div>
         `).join('');
 
-        // Revela um de cada vez, mas já deixa a posição final preparada.
+        // Revela um de cada vez
         [3, 2, 1]
             .filter(posicao => document.querySelector(`.podium-card[data-posicao="${posicao}"]`))
             .forEach((posicao, indice) => {
@@ -602,20 +895,26 @@
 
     async function enviarResposta(resposta) {
         document.querySelectorAll('.answer-btn').forEach(botao => botao.disabled = true);
-        const retorno = await fetch(respostaUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Player-Token': playerToken },
-            body: JSON.stringify({ resposta })
-        });
-        if (retorno.ok) {
-            renderizarEstado(await retorno.json());
+        try {
+            const retorno = await fetch(respostaUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Player-Token': playerToken },
+                body: JSON.stringify({ resposta })
+            });
+            const dados = await lerRespostaJsonOuSair(retorno);
+            if (dados) renderizarEstado(dados);
+        } catch (_erro) {
+            document.getElementById('feedbackResposta').textContent = 'Conexao oscilou. Tente responder de novo.';
+            document.querySelectorAll('.answer-btn').forEach(botao => botao.disabled = false);
         }
     }
+
 
     function renderizarEstado(estado) {
         document.getElementById('jogadoresAtual').textContent = estado.sala.qtd_jogadores;
         renderizarPlacar(estado.jogadores);
         if (estado.status === 'espera') {
+            navegacaoInterna = true;
             window.location.href = esperaUrl;
         } else if (estado.status === 'jogando') {
             renderizarPergunta(estado);
@@ -628,10 +927,20 @@
 
     // Mantém a tela sincronizada com o servidor durante toda a partida.
     async function buscarEstado() {
-        const resposta = await fetch(estadoUrl, { headers: { 'X-Player-Token': playerToken } });
-        if (!resposta.ok || !resposta.headers.get('content-type')?.includes('application/json')) return;
-        if (resposta.ok) renderizarEstado(await resposta.json());
+        try {
+            const resposta = await fetch(estadoUrl, { headers: { 'X-Player-Token': playerToken } });
+            const dados = await lerRespostaJsonOuSair(resposta);
+            if (dados) renderizarEstado(dados);
+        } catch (_erro) {
+            // Se a internet oscilar a próxima chamada tenta de novo.
+        }
     }
+
+    document.querySelectorAll('form[action*="/voltar-espera"]').forEach(form => {
+        form.addEventListener('submit', () => {
+            navegacaoInterna = true;
+        });
+    });
 
     buscarEstado();
     setInterval(buscarEstado, 1000);
